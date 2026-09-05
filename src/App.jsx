@@ -27,11 +27,70 @@ const ExecutiveDashboard = ({
   loaiDao,
   historyCheck, 
   historyList3 = [], 
+  historyList10 = [],
   txcl, 
   handleCopy, 
   handleDeleteResult,
   bacNhoInfo
 }) => {
+
+  const thuanWins3 = historyList10.filter(h => h && h.isLoai3ThuanHit).length;
+  const thuanTotal = historyList10.length;
+  const thuanRate3 = thuanTotal > 0 ? Math.round((thuanWins3 / thuanTotal) * 100) : 0;
+
+  const daoWins3 = historyList10.filter(h => h && h.isLoai3DaoHit).length;
+  const daoTotal = historyList10.length;
+  const daoRate3 = daoTotal > 0 ? Math.round((daoWins3 / daoTotal) * 100) : 0;
+
+  const renderStreak10 = (mode = 'thuan') => {
+    if (!historyList10 || historyList10.length === 0) return null;
+    const wins3 = mode === 'thuan' ? thuanWins3 : daoWins3;
+    const total = historyList10.length;
+    const rate = mode === 'thuan' ? thuanRate3 : daoRate3;
+
+    return (
+      <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #334155', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+          <span style={{ fontSize: '11px', color: '#cbd5e1', fontWeight: 'bold' }}>
+            📊 THỐNG KÊ 10 KỲ ({mode === 'thuan' ? 'THUẬN' : 'ĐẢO'} - LOẠI 3 SỐ):
+          </span>
+          <span style={{ fontSize: '11px', fontWeight: 'bold', color: wins3 >= 7 ? '#34d399' : (wins3 >= 5 ? '#fbbf24' : '#f87171'), backgroundColor: 'rgba(0,0,0,0.5)', padding: '2px 8px', borderRadius: '4px', border: '1px solid #475569' }}>
+            {wins3}/{total} Trúng ({rate}%)
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
+          {[...historyList10].reverse().map((h, idx) => {
+            const isWin = mode === 'thuan' ? h.isLoai3ThuanHit : h.isLoai3DaoHit;
+            const drawNum = h.drawId ? h.drawId.slice(-3) : (idx + 1);
+            const pLoai = mode === 'thuan' ? h.pLoaiThuan : h.pLoaiDao;
+            return (
+              <div 
+                key={idx}
+                title={`Kỳ ${drawNum}: ${isWin ? 'Trúng (Thắng)' : 'Trượt (Thua)'} | Về Hậu: ${h.resultHau || ''} | Cắt: [${(pLoai?.loai3 || []).join(',')}]`}
+                style={{
+                  backgroundColor: isWin ? '#065f46' : '#991b1b',
+                  border: isWin ? '1px solid #34d399' : '1px solid #ef4444',
+                  color: 'white',
+                  borderRadius: '5px',
+                  padding: '2px 6px',
+                  fontSize: '11px',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  boxShadow: isWin ? '0 1px 4px rgba(52, 211, 153, 0.4)' : '0 1px 4px rgba(239, 68, 68, 0.4)'
+                }}
+              >
+                <span style={{ color: '#cbd5e1', fontSize: '10px' }}>{drawNum}:</span>
+                <span style={{ fontSize: '12px' }}>{isWin ? '✅' : '❌'}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
 
   const renderTXCLHit = (prediction, actual) => {
     const isHit = prediction === actual;
@@ -220,6 +279,9 @@ const ExecutiveDashboard = ({
               </div>
             </div>
 
+            {/* Thống kê 10 kỳ gần nhất */}
+            {renderStreak10('thuan')}
+
           </div>
 
           {/* ========================================================================= */}
@@ -306,6 +368,9 @@ const ExecutiveDashboard = ({
                 </div>
               </div>
             </div>
+
+            {/* Thống kê 10 kỳ gần nhất */}
+            {renderStreak10('dao')}
 
           </div>
           
@@ -484,6 +549,8 @@ const ExecutiveDashboard = ({
                         </div>
                       </div>
                     </div>
+                    {/* Thống kê 10 kỳ gần nhất */}
+                    {renderStreak10('thuan')}
                   </div>
 
                   {/* BẢNG 2: ĐỐI CHIẾU ĐẢO CẦU */}
@@ -514,6 +581,8 @@ const ExecutiveDashboard = ({
                         </div>
                       </div>
                     </div>
+                    {/* Thống kê 10 kỳ gần nhất */}
+                    {renderStreak10('dao')}
                   </div>
 
                 </div>
@@ -934,6 +1003,7 @@ function App() {
 
   let historyCheck = null;
   const historyList3 = [];
+  const historyList10 = [];
 
   if (rawData.length >= 2) {
     historyCheck = getPredictionsForData(rawData.slice(1), rawData[0]);
@@ -943,6 +1013,11 @@ function App() {
     if (rawData.length > i) {
       historyList3.push(getPredictionsForData(rawData.slice(i), rawData[i-1]));
     }
+  }
+
+  const maxCheck10 = Math.min(10, rawData.length - 1);
+  for (let i = 1; i <= maxCheck10; i++) {
+    historyList10.push(getPredictionsForData(rawData.slice(i), rawData[i-1]));
   }
 
   return (
@@ -1063,6 +1138,7 @@ function App() {
               handleCopy={handleCopy} 
               historyCheck={historyCheck} 
               historyList3={historyList3} 
+              historyList10={historyList10}
               txcl={txcl} 
               handleDeleteResult={handleDeleteResult}
               bacNhoInfo={bacNhoInfo}
