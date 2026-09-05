@@ -357,91 +357,156 @@ export const analyzeSingleDigits = (data) => {
 };
 
 // ============================================================================
-// CHIẾN THUẬT LOẠI SỐ HẬU NHỊ THEO CẦU CÔNG THỨC & NHỊP CẮT THÔNG (2026):
-// 1. Quét toàn bộ cầu công thức: Tổng 3 đầu, Tổng 3 cuối, Tổng 3 giữa, Bóng âm/dương đơn vị,
-//    Bóng âm/dương con giữa, Tâm càng, Bóng âm/dương chục, Tổng 5 số, Tổng đầu+cuối...
-// 2. Xét nhịp ăn/cắt thông (Streak >= 3 tay liên tiếp không về hậu nhị -> Chọn làm chạm loại).
-// 3. Đảo cầu: Loại các số đang nổ thông hoặc nhịp bẻ cầu.
 // ============================================================================
-const FORMULA_BRIDGES = [
+// HỆ THỐNG CẦU CƠ BẢN BẮT SỐ LOẠI (BÓNG ÂM / DƯƠNG & VỊ TRÍ)
+// Bám sát yêu cầu:
+// 1. Cầu Bộ 3 Vị Trí: Vạn (d0) - Trăm (d2) - Đơn Vị (d4) -> Bóng Dương & Bóng Âm & Chính số
+// 2. Cầu Tổng 3 con cuối (d2+d3+d4) -> Bóng Dương & Bóng Âm & Chính số
+// 3. Cầu Con Hàng Chục (d3) -> Bóng Dương & Bóng Âm & Chính số
+// 4. Cầu Tổng 3 con đầu (d0+d1+d2) -> Bóng Dương & Bóng Âm & Chính số
+// 5. Cầu Con Hàng Đơn Vị (d4) -> Bóng Dương & Bóng Âm & Chính số
+// 6. Cầu Con Hàng Trăm (d2) -> Bóng Dương & Bóng Âm & Chính số
+// 7. Cầu Tổng 2 con đầu & Tổng 2 con cuối
+// Bám nhịp ăn thông >= 3 tay để loại số
+// ============================================================================
+
+// 1. CẦU COMBO BỘ 3 VỊ TRÍ: VẠN - TRĂM - ĐƠN VỊ
+export const COMBO_BRIDGES = [
   {
-    id: 'tong_3_dau',
-    name: 'Tổng 3 con đầu',
-    calc: (d) => ((parseInt(d[0]) + parseInt(d[1]) + parseInt(d[2])) % 10).toString()
+    id: 'combo_bong_am_van_tram_dv',
+    name: 'Bóng Âm (Vạn-Trăm-Đơn vị)',
+    calc: (d) => [getBongAm(d[0]) || '0', getBongAm(d[2]) || '0', getBongAm(d[4]) || '0']
   },
   {
-    id: 'tong_3_cuoi',
-    name: 'Tổng 3 con cuối',
+    id: 'combo_bong_duong_van_tram_dv',
+    name: 'Bóng Dương (Vạn-Trăm-Đơn vị)',
+    calc: (d) => [getBongDuong(d[0]) || '0', getBongDuong(d[2]) || '0', getBongDuong(d[4]) || '0']
+  },
+  {
+    id: 'combo_chinh_van_tram_dv',
+    name: 'Chính số (Vạn-Trăm-Đơn vị)',
+    calc: (d) => [d[0], d[2], d[4]]
+  }
+];
+
+// 2. CÁC CẦU CÔNG THỨC ĐƠN LẺ CƠ BẢN
+export const FORMULA_BRIDGES = [
+  // A. Tổng 3 con cuối (d2 + d3 + d4)
+  {
+    id: 'bong_am_tong_3_cuoi',
+    name: 'Bóng Âm Tổng 3 cuối',
+    calc: (d) => getBongAm((parseInt(d[2]) + parseInt(d[3]) + parseInt(d[4])) % 10) || '0'
+  },
+  {
+    id: 'bong_duong_tong_3_cuoi',
+    name: 'Bóng Dương Tổng 3 cuối',
+    calc: (d) => getBongDuong((parseInt(d[2]) + parseInt(d[3]) + parseInt(d[4])) % 10) || '0'
+  },
+  {
+    id: 'chinh_tong_3_cuoi',
+    name: 'Chính số Tổng 3 cuối',
     calc: (d) => ((parseInt(d[2]) + parseInt(d[3]) + parseInt(d[4])) % 10).toString()
   },
-  {
-    id: 'tong_3_giua',
-    name: 'Tổng 3 con giữa',
-    calc: (d) => ((parseInt(d[1]) + parseInt(d[2]) + parseInt(d[3])) % 10).toString()
-  },
-  {
-    id: 'tong_2_dau',
-    name: 'Tổng 2 con đầu',
-    calc: (d) => ((parseInt(d[0]) + parseInt(d[1])) % 10).toString()
-  },
-  {
-    id: 'tong_2_cuoi',
-    name: 'Tổng 2 con cuối',
-    calc: (d) => ((parseInt(d[3]) + parseInt(d[4])) % 10).toString()
-  },
-  {
-    id: 'bong_am_don_vi',
-    name: 'Bóng âm số đơn vị',
-    calc: (d) => getBongAm(d[4]) || '0'
-  },
-  {
-    id: 'bong_duong_don_vi',
-    name: 'Bóng dương số đơn vị',
-    calc: (d) => getBongDuong(d[4]) || '0'
-  },
-  {
-    id: 'bong_am_giua',
-    name: 'Bóng âm con giữa',
-    calc: (d) => getBongAm(d[2]) || '0'
-  },
-  {
-    id: 'bong_duong_giua',
-    name: 'Bóng dương con giữa',
-    calc: (d) => getBongDuong(d[2]) || '0'
-  },
-  {
-    id: 'tam_cang',
-    name: 'Tâm càng (Con giữa)',
-    calc: (d) => d[2]
-  },
+
+  // B. Hàng chục (d3)
   {
     id: 'bong_am_chuc',
-    name: 'Bóng âm số hàng chục',
+    name: 'Bóng Âm hàng chục',
     calc: (d) => getBongAm(d[3]) || '0'
   },
   {
     id: 'bong_duong_chuc',
-    name: 'Bóng dương số hàng chục',
+    name: 'Bóng Dương hàng chục',
     calc: (d) => getBongDuong(d[3]) || '0'
   },
   {
-    id: 'tong_5_so',
-    name: 'Tổng 5 số',
-    calc: (d) => ((parseInt(d[0]) + parseInt(d[1]) + parseInt(d[2]) + parseInt(d[3]) + parseInt(d[4])) % 10).toString()
+    id: 'chinh_chuc',
+    name: 'Chính số hàng chục',
+    calc: (d) => d[3]
+  },
+
+  // C. Tổng 3 con đầu (d0 + d1 + d2)
+  {
+    id: 'bong_am_tong_3_dau',
+    name: 'Bóng Âm Tổng 3 đầu',
+    calc: (d) => getBongAm((parseInt(d[0]) + parseInt(d[1]) + parseInt(d[2])) % 10) || '0'
   },
   {
-    id: 'tong_van_dv',
-    name: 'Tổng con đầu + cuối',
-    calc: (d) => ((parseInt(d[0]) + parseInt(d[4])) % 10).toString()
+    id: 'bong_duong_tong_3_dau',
+    name: 'Bóng Dương Tổng 3 đầu',
+    calc: (d) => getBongDuong((parseInt(d[0]) + parseInt(d[1]) + parseInt(d[2])) % 10) || '0'
   },
+  {
+    id: 'chinh_tong_3_dau',
+    name: 'Chính số Tổng 3 đầu',
+    calc: (d) => ((parseInt(d[0]) + parseInt(d[1]) + parseInt(d[2])) % 10).toString()
+  },
+
+  // D. Hàng đơn vị (d4)
+  {
+    id: 'bong_am_dv',
+    name: 'Bóng Âm hàng đơn vị',
+    calc: (d) => getBongAm(d[4]) || '0'
+  },
+  {
+    id: 'bong_duong_dv',
+    name: 'Bóng Dương hàng đơn vị',
+    calc: (d) => getBongDuong(d[4]) || '0'
+  },
+  {
+    id: 'chinh_dv',
+    name: 'Chính số hàng đơn vị',
+    calc: (d) => d[4]
+  },
+
+  // E. Hàng trăm / Tâm càng (d2)
+  {
+    id: 'bong_am_tram',
+    name: 'Bóng Âm hàng trăm',
+    calc: (d) => getBongAm(d[2]) || '0'
+  },
+  {
+    id: 'bong_duong_tram',
+    name: 'Bóng Dương hàng trăm',
+    calc: (d) => getBongDuong(d[2]) || '0'
+  },
+  {
+    id: 'chinh_tram',
+    name: 'Chính số hàng trăm',
+    calc: (d) => d[2]
+  },
+
+  // F. Tổng 2 con đầu (d0 + d1) & Tổng 2 con cuối (d3 + d4)
+  {
+    id: 'bong_am_tong_2_dau',
+    name: 'Bóng Âm Tổng 2 đầu',
+    calc: (d) => getBongAm((parseInt(d[0]) + parseInt(d[1])) % 10) || '0'
+  },
+  {
+    id: 'bong_duong_tong_2_dau',
+    name: 'Bóng Dương Tổng 2 đầu',
+    calc: (d) => getBongDuong((parseInt(d[0]) + parseInt(d[1])) % 10) || '0'
+  },
+  {
+    id: 'bong_am_tong_2_cuoi',
+    name: 'Bóng Âm Tổng 2 cuối',
+    calc: (d) => getBongAm((parseInt(d[3]) + parseInt(d[4])) % 10) || '0'
+  },
+  {
+    id: 'bong_duong_tong_2_cuoi',
+    name: 'Bóng Dương Tổng 2 cuối',
+    calc: (d) => getBongDuong((parseInt(d[3]) + parseInt(d[4])) % 10) || '0'
+  },
+
+  // G. Hàng Vạn / Con đầu (d0)
   {
     id: 'bong_am_van',
-    name: 'Bóng âm con đầu',
+    name: 'Bóng Âm con đầu',
     calc: (d) => getBongAm(d[0]) || '0'
   },
   {
     id: 'bong_duong_van',
-    name: 'Bóng dương con đầu',
+    name: 'Bóng Dương con đầu',
     calc: (d) => getBongDuong(d[0]) || '0'
   }
 ];
@@ -476,10 +541,48 @@ export const getLoaiSoHauNhi = (rawData, mode = 'thuan') => {
   const nDraws = ascData.length;
   const lastDraw = ascData[nDraws - 1].Result;
 
-  // 1. Phân tích từng cầu công thức qua toàn bộ lịch sử các kỳ
-  const bridgeResults = FORMULA_BRIDGES.map(bridge => {
-    let cutStreak = 0; // Số tay cắt liên tiếp gần nhất (không về hậu nhị)
-    let hitStreak = 0; // Số tay nổ liên tiếp gần nhất (có về hậu nhị)
+  // 1. Phân tích COMBO BRIDGES (Bộ 3 vị trí Vạn - Trăm - Đơn vị)
+  const comboResults = COMBO_BRIDGES.map(bridge => {
+    let cutStreak = 0;
+    let totalCut = 0;
+    let totalChecked = 0;
+    let streakDetermined = false;
+
+    for (let i = nDraws - 2; i >= 0; i--) {
+      const prevResult = ascData[i].Result;
+      const nextHau = ascData[i + 1].Result.slice(3, 5);
+      const predictedCombo = bridge.calc(prevResult);
+      // Cắt thành công khi không có chữ số nào trong bộ 3 rơi vào hậu nhị
+      const isCut = !predictedCombo.some(d => nextHau.includes(d));
+
+      totalChecked++;
+      if (isCut) totalCut++;
+
+      if (!streakDetermined) {
+        if (isCut) {
+          cutStreak++;
+        } else {
+          streakDetermined = true;
+        }
+      }
+    }
+
+    const nextCombo = Array.from(new Set(bridge.calc(lastDraw)));
+    return {
+      id: bridge.id,
+      name: bridge.name,
+      cutStreak,
+      totalCut,
+      totalChecked,
+      cutRate: totalChecked > 0 ? (totalCut / totalChecked) : 0.7,
+      nextCombo
+    };
+  });
+
+  // 2. Phân tích SINGLE BRIDGES (Các cầu công thức đơn lẻ)
+  const singleResults = FORMULA_BRIDGES.map(bridge => {
+    let cutStreak = 0;
+    let hitStreak = 0;
     let totalCut = 0;
     let totalChecked = 0;
 
@@ -510,7 +613,7 @@ export const getLoaiSoHauNhi = (rawData, mode = 'thuan') => {
       }
     }
 
-    const nextPredictedDigit = bridge.calc(lastDraw);
+    const nextDigit = bridge.calc(lastDraw);
     return {
       id: bridge.id,
       name: bridge.name,
@@ -519,73 +622,79 @@ export const getLoaiSoHauNhi = (rawData, mode = 'thuan') => {
       totalCut,
       totalChecked,
       cutRate: totalChecked > 0 ? (totalCut / totalChecked) : 0.7,
-      nextPredictedDigit
+      nextDigit
     };
   });
 
-  // 2. Chấm điểm Loại cho từng chữ số 0-9
+  // 3. Chấm điểm Loại cho từng chữ số 0-9
   const digitScore = {};
   for (let i = 0; i < 10; i++) digitScore[i.toString()] = 0;
 
-  // Đếm tần suất xuất hiện ở hậu nhị gần nhất (Mean Reversion)
-  const recentSlice = ascData.slice(-Math.min(8, nDraws));
-  const hauCounts = {};
-  for (let i = 0; i < 10; i++) hauCounts[i.toString()] = 0;
-  recentSlice.forEach(dr => {
-    const h = dr.Result.slice(3, 5);
-    hauCounts[h[0]]++;
-    hauCounts[h[1]]++;
-  });
-
-  bridgeResults.forEach(b => {
-    const d = b.nextPredictedDigit;
+  // Điểm từ các cầu đơn lẻ
+  singleResults.forEach(b => {
+    const d = b.nextDigit;
     if (b.cutStreak >= 3) {
-      // Cầu cắt thông >= 3 tay: Cộng điểm mạnh để loại
-      digitScore[d] += b.cutStreak * 160 + b.cutRate * 80;
+      digitScore[d] += b.cutStreak * 200 + b.cutRate * 100;
     } else if (b.cutStreak === 2) {
-      digitScore[d] += 90 + b.cutRate * 40;
+      digitScore[d] += 100 + b.cutRate * 50;
     } else if (b.cutStreak === 1) {
       digitScore[d] += 30;
     }
 
     if (b.hitStreak >= 2) {
-      // Cầu nổ thông vào hậu nhị: Giảm điểm loại (giữ lại số này)
-      digitScore[d] -= b.hitStreak * 120;
+      digitScore[d] -= b.hitStreak * 150;
     }
   });
 
-  // Cân bằng tần suất hậu nhị
-  for (let i = 0; i < 10; i++) {
-    const s = i.toString();
-    if (hauCounts[s] === 0) digitScore[s] += 60; // Nguội -> Dễ bị loại
-    else digitScore[s] -= hauCounts[s] * 25; // Đang ra -> Ưu tiên giữ
-  }
+  // Điểm cộng từ Combo Bridges
+  comboResults.forEach(cb => {
+    if (cb.cutStreak >= 3) {
+      cb.nextCombo.forEach(d => {
+        digitScore[d] += cb.cutStreak * 300 + 500;
+      });
+    } else if (cb.cutStreak >= 2) {
+      cb.nextCombo.forEach(d => {
+        digitScore[d] += 200;
+      });
+    }
+  });
 
-  // Danh sách các cầu cắt thông xuất sắc nhất
-  const topCutBridges = bridgeResults
-    .filter(b => b.cutStreak >= 2)
-    .sort((a, b) => (b.cutStreak * 100 + b.cutRate * 50) - (a.cutStreak * 100 + a.cutRate * 50));
+  // Tìm Combo xuất sắc nhất (ăn thông >= 3 tay và có đủ 3 chữ số khác nhau)
+  const bestCombo = comboResults
+    .filter(c => c.cutStreak >= 3 && c.nextCombo.length === 3)
+    .sort((a, b) => b.cutStreak - a.cutStreak)[0];
 
-  // Sắp xếp các số theo điểm loại (từ cao nhất xuống thấp nhất)
   const sortedByElim = Object.keys(digitScore).sort((a, b) => digitScore[b] - digitScore[a]);
 
   let loai2, giu8, loai3, giu7, loai4, giu6;
+
   if (mode === 'dao') {
-    // ĐẢO CẦU: Loại các số có điểm loại thấp nhất (số đang nổ hoặc ít bị cắt nhất), Giữ các số bị cắt
-    loai2 = sortedByElim.slice(-2).sort((a, b) => a - b);
-    giu8 = sortedByElim.slice(0, 8).sort((a, b) => a - b);
+    // ĐẢO CẦU: Loại các số có điểm loại thấp nhất (số đang nổ hoặc ít bị cắt), Giữ các số bị cắt
     loai3 = sortedByElim.slice(-3).sort((a, b) => a - b);
     giu7 = sortedByElim.slice(0, 7).sort((a, b) => a - b);
     loai4 = sortedByElim.slice(-4).sort((a, b) => a - b);
     giu6 = sortedByElim.slice(0, 6).sort((a, b) => a - b);
+    loai2 = sortedByElim.slice(-2).sort((a, b) => a - b);
+    giu8 = sortedByElim.slice(0, 8).sort((a, b) => a - b);
   } else {
-    // THUẬN CẦU: Loại các số có điểm loại cao nhất (các cầu cắt thông >= 3 tay chỉ mặt), Giữ các số còn lại
-    loai2 = sortedByElim.slice(0, 2).sort((a, b) => a - b);
-    giu8 = sortedByElim.slice(2).sort((a, b) => a - b);
-    loai3 = sortedByElim.slice(0, 3).sort((a, b) => a - b);
-    giu7 = sortedByElim.slice(3).sort((a, b) => a - b);
-    loai4 = sortedByElim.slice(0, 4).sort((a, b) => a - b);
-    giu6 = sortedByElim.slice(4).sort((a, b) => a - b);
+    // THUẬN CẦU: Nếu có combo bộ 3 ăn thông >= 3 tay, ưu tiên bắt trực tiếp bộ 3 này
+    if (bestCombo && bestCombo.nextCombo.length === 3) {
+      loai3 = [...bestCombo.nextCombo].sort((a, b) => a - b);
+      giu7 = Object.keys(digitScore).filter(d => !loai3.includes(d)).sort((a, b) => a - b);
+      
+      const next4th = sortedByElim.find(d => !loai3.includes(d));
+      loai4 = [...loai3, next4th].sort((a, b) => a - b);
+      giu6 = Object.keys(digitScore).filter(d => !loai4.includes(d)).sort((a, b) => a - b);
+      loai2 = loai3.slice(0, 2);
+      giu8 = Object.keys(digitScore).filter(d => !loai2.includes(d)).sort((a, b) => a - b);
+    } else {
+      loai2 = sortedByElim.slice(0, 2).sort((a, b) => a - b);
+      giu8 = sortedByElim.slice(2).sort((a, b) => a - b);
+      loai3 = sortedByElim.slice(0, 3).sort((a, b) => a - b);
+      giu7 = sortedByElim.slice(3).sort((a, b) => a - b);
+      loai4 = sortedByElim.slice(0, 4).sort((a, b) => a - b);
+      giu6 = sortedByElim.slice(4).sort((a, b) => a - b);
+    }
   }
 
   // Sinh dàn 49 số & 36 số & 64 số
@@ -605,17 +714,30 @@ export const getLoaiSoHauNhi = (rawData, mode = 'thuan') => {
   const dan16 = [];
   for (const d1 of loai4) for (const d2 of loai4) dan16.push(d1 + d2);
 
-  // Tên cầu và lý do
-  let activeBridgeName = 'Cầu Bắt Chạm Loại Tổng Hợp';
-  if (topCutBridges.length > 0) {
-    const best = topCutBridges[0];
-    activeBridgeName = `🎯 ${best.name}: Cắt thông ${best.cutStreak} tay (Loại số ${best.nextPredictedDigit})`;
+  // Tên cầu và lý do bám cầu
+  const topCutSingles = singleResults
+    .filter(s => s.cutStreak >= 2)
+    .sort((a, b) => (b.cutStreak * 100 + b.cutRate * 50) - (a.cutStreak * 100 + a.cutRate * 50));
+
+  let activeBridgeName = 'Cầu Bắt Chạm Loại Cơ Bản (Bóng Âm / Dương)';
+  if (bestCombo) {
+    activeBridgeName = `🎯 ${bestCombo.name}: Ăn thông ${bestCombo.cutStreak} tay (Loại [${bestCombo.nextCombo.join(',')}])`;
+  } else if (topCutSingles.length > 0) {
+    const best = topCutSingles[0];
+    activeBridgeName = `🎯 ${best.name}: Cắt thông ${best.cutStreak} tay (Loại số ${best.nextDigit})`;
   }
 
-  const reasonList = topCutBridges.slice(0, 3).map(b => `${b.name} (cắt ${b.cutStreak} tay -> loại ${b.nextPredictedDigit})`);
-  const trendReason = reasonList.length > 0
-    ? `⚡ Cầu cắt thông: ${reasonList.join(' • ')}`
-    : '🛡️ Đang rà soát cầu câm & nhịp cắt hậu nhị';
+  const reasons = [];
+  if (bestCombo) {
+    reasons.push(`${bestCombo.name} thông ${bestCombo.cutStreak} tay`);
+  }
+  topCutSingles.slice(0, 3).forEach(s => {
+    reasons.push(`${s.name} (cắt ${s.cutStreak} tay -> loại ${s.nextDigit})`);
+  });
+
+  const trendReason = reasons.length > 0
+    ? `⚡ Bám cầu thông: ${reasons.join(' • ')}`
+    : '🛡️ Đang bám sát nhịp cắt bóng âm & dương hậu nhị';
 
   return {
     mode,
@@ -637,7 +759,7 @@ export const getLoaiSoHauNhi = (rawData, mode = 'thuan') => {
     dan16,
     activeBridgeName,
     trendReason,
-    topCutBridges,
+    topCutBridges: topCutSingles,
     reason: mode === 'dao'
       ? `🔄 ĐẢO CẦU: Cắt số nóng [${loai3.join(',')}] • Giữ 7 số đón hồi [${giu7.join(',')}]`
       : `🟢 THUẬN CẦU: Cắt số cầu thông [${loai3.join(',')}] • Giữ 7 số [${giu7.join(',')}]`
