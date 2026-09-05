@@ -358,16 +358,18 @@ export const analyzeSingleDigits = (data) => {
 
 // ============================================================================
 // ============================================================================
-// HỆ THỐNG 5 CẦU THUẬN CỐT LÕI (BÓNG DƯƠNG & CÔNG THỨC CHUẨN LOTOBET):
+// HỆ THỐNG 7 CẦU THUẬN CỐT LÕI (BÓNG DƯƠNG & CÔNG THỨC CHUẨN LOTOBET):
 // 1. Cầu 1: Tổng con Ngàn (d1) + con Trăm (d2) -> Bóng Dương -> Số Loại
 // 2. Cầu 2: Tổng con Trăm (d2) + con Chục (d3) -> Bóng Dương -> Số Loại
 // 3. Cầu 3: Tổng con Chục (d3) + con Đơn vị (d4) -> Bóng Dương -> Số Loại
 // 4. Cầu 4: Con Đơn vị (d4) × 2 -> Bóng Dương -> Số Loại
 // 5. Cầu 5: Tổng 3 con cuối (d2 + d3 + d4) -> Bóng Dương -> Số Loại
+// 6. Cầu 6: Con Trăm (d2) × 2 -> Bóng Dương -> Số Loại
+// 7. Cầu 7: Tổng 3 con giữa (d1 + d2 + d3) -> Bóng Dương -> Số Loại
 // Bám nhịp ăn thông >= 3 tay -> Bôi xanh & Khuyến khích
 // ============================================================================
 
-export const FIVE_BRIDGES = [
+export const CORE_BRIDGES = [
   {
     id: 'cau_1_ngan_tram',
     name: 'Cầu 1: Tổng Ngàn + Trăm',
@@ -449,8 +451,44 @@ export const FIVE_BRIDGES = [
       };
     },
     calc: (d) => getBongDuong((parseInt(d[2]) + parseInt(d[3]) + parseInt(d[4])) % 10)
+  },
+  {
+    id: 'cau_6_tram_nhan_2',
+    name: 'Cầu 6: Con Trăm × 2',
+    shortName: 'Con Trăm × 2',
+    calcFormula: (d) => {
+      const tram = parseInt(d[2]);
+      const mult = tram * 2;
+      const lastDigit = mult % 10;
+      const loai = getBongDuong(lastDigit);
+      return {
+        formulaText: `${tram} × 2 = ${mult} (tổng ${lastDigit}) ➔ Bóng dương: ${loai}`,
+        digit: loai
+      };
+    },
+    calc: (d) => getBongDuong((parseInt(d[2]) * 2) % 10)
+  },
+  {
+    id: 'cau_7_tong_3_giua',
+    name: 'Cầu 7: Tổng 3 Con Giữa',
+    shortName: 'Tổng 3 Con Giữa',
+    calcFormula: (d) => {
+      const ngan = parseInt(d[1]);
+      const tram = parseInt(d[2]);
+      const chuc = parseInt(d[3]);
+      const sum = ngan + tram + chuc;
+      const lastDigit = sum % 10;
+      const loai = getBongDuong(lastDigit);
+      return {
+        formulaText: `${ngan} + ${tram} + ${chuc} = ${sum} (tổng ${lastDigit}) ➔ Bóng dương: ${loai}`,
+        digit: loai
+      };
+    },
+    calc: (d) => getBongDuong((parseInt(d[1]) + parseInt(d[2]) + parseInt(d[3])) % 10)
   }
 ];
+
+export const FIVE_BRIDGES = CORE_BRIDGES;
 
 export const getLoaiSoHauNhi = (rawData) => {
   if (!rawData || rawData.length === 0) {
@@ -474,8 +512,8 @@ export const getLoaiSoHauNhi = (rawData) => {
   const nDraws = ascData.length;
   const lastDraw = ascData[nDraws - 1].Result;
 
-  // 1. Phân tích 5 CẦU THUẬN qua lịch sử các kỳ
-  const bridgeStats = FIVE_BRIDGES.map(bridge => {
+  // 1. Phân tích 7 CẦU THUẬN qua lịch sử các kỳ
+  const bridgeStats = CORE_BRIDGES.map(bridge => {
     let streak = 0;
     let hitStreak = 0;
     let streakDetermined = false;

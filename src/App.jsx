@@ -192,7 +192,7 @@ const ExecutiveDashboard = ({
             
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#064e3b', padding: '8px 12px', borderRadius: '8px', border: '1px solid #059669' }}>
               <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#6ee7b7', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                🟢 BẢNG 5 CẦU THUẬN CỐT LÕI (BÓNG DƯƠNG)
+                🟢 BẢNG 7 CẦU THUẬN CỐT LÕI (BÓNG DƯƠNG)
               </span>
               <span style={{ fontSize: '11px', color: '#a7f3d0' }}>Chuẩn Lotobet</span>
             </div>
@@ -496,7 +496,7 @@ const ExecutiveDashboard = ({
                 <div style={{ backgroundColor: '#0f172a', padding: '12px', borderRadius: '10px', border: '1px solid #10b981', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontWeight: 'bold', color: '#34d399', fontSize: '0.9rem' }}>
-                      🟢 ĐỐI CHIẾU 5 CẦU THUẬN KỲ VỪA XỔ:
+                      🟢 ĐỐI CHIẾU 7 CẦU THUẬN KỲ VỪA XỔ:
                     </span>
                     <span style={{ fontSize: '11px', color: '#9ca3af' }}>Về Hậu Nhị: <strong style={{ color: '#facc15' }}>{historyCheck.resultHau}</strong></span>
                   </div>
