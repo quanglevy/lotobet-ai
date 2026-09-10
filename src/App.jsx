@@ -277,11 +277,61 @@ const ExecutiveDashboard = ({
             {renderStreak10()}
 
             {/* ========================================================================= */}
-            {/* PHẦN 2: 🟢 CHI TIẾT 10 CẦU THUẬN CỐT LÕI */}
+            {/* PHẦN 2: ⭐ CÁC CẦU KHUYÊN DÙNG ĐANG THÔNG (TÁCH TỪNG DÒNG RÕ RÀNG) */}
             {/* ========================================================================= */}
-            {loaiSo?.activeBridgeName && (
-              <div style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', borderRadius: '8px', padding: '6px 12px', color: '#34d399', fontSize: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
-                {loaiSo.activeBridgeName}
+            {loaiSo?.recommendedBridges && loaiSo.recommendedBridges.length > 0 && (
+              <div style={{
+                backgroundColor: 'rgba(6, 78, 59, 0.45)',
+                border: '1.5px solid #10b981',
+                borderRadius: '10px',
+                padding: '10px 12px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                marginTop: '4px',
+                boxShadow: '0 0 12px rgba(16, 185, 129, 0.25)'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(16, 185, 129, 0.3)', paddingBottom: '6px' }}>
+                  <span style={{ color: '#6ee7b7', fontWeight: 'bold', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    ⭐ CÁC CẦU KHUYÊN DÙNG ĐANG THÔNG (≥ 3 TAY):
+                  </span>
+                  <span style={{ backgroundColor: '#10b981', color: '#022c22', fontWeight: '900', fontSize: '11px', padding: '2px 8px', borderRadius: '9999px' }}>
+                    {loaiSo.recommendedBridges.length} Cầu Đang Ăn
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {[...loaiSo.recommendedBridges].sort((a, b) => b.streak - a.streak).map((b, idx) => (
+                    <div 
+                      key={idx}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        backgroundColor: '#0f172a',
+                        padding: '6px 10px',
+                        borderRadius: '6px',
+                        border: '1px solid #1e293b',
+                        flexWrap: 'wrap',
+                        gap: '4px'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ color: '#38bdf8', fontSize: '11px', fontWeight: 'bold' }}>#{idx + 1}</span>
+                        <span style={{ color: '#f1f5f9', fontSize: '12.5px', fontWeight: 'bold' }}>{b.name || b.shortName}</span>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ backgroundColor: '#065f46', color: '#34d399', border: '1px solid #059669', fontSize: '11px', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px' }}>
+                          🔥 Thông {b.streak} tay ({b.winRate}%)
+                        </span>
+                        <span style={{ backgroundColor: '#ef4444', color: 'white', fontSize: '11.5px', fontWeight: '900', padding: '2px 8px', borderRadius: '4px', textDecoration: 'line-through', boxShadow: '0 1px 3px rgba(0,0,0,0.4)' }}>
+                          Loại {b.predDigit}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
