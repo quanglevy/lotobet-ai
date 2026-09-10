@@ -186,24 +186,93 @@ const ExecutiveDashboard = ({
           </div>
 
           {/* ========================================================================= */}
-          {/* KHU VỰC 1: 🏆 BẢNG THEO DÕI 5 CẦU THUẬN CỐT LÕI (BÓNG DƯƠNG) */}
+          {/* KHU VỰC 1: 🏆 TỔNG HỢP KÈO & BẢNG THEO DÕI 10 CẦU THUẬN CỐT LÕI */}
           {/* ========================================================================= */}
           <div style={{ backgroundColor: 'rgba(30, 41, 59, 0.7)', padding: '14px', borderRadius: '12px', border: '1px solid #10b981', marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#064e3b', padding: '8px 12px', borderRadius: '8px', border: '1px solid #059669' }}>
+            {/* ========================================================================= */}
+            {/* PHẦN 1: 🛡️ TỔNG HỢP KÈO LOẠI 3 SỐ & 4 SỐ (ĐƯA LÊN TRÊN CÙNG) */}
+            {/* ========================================================================= */}
+            {/* 1. MỤC LOẠI 3 SỐ */}
+            <div style={{ backgroundColor: '#0f172a', padding: '12px', borderRadius: '10px', border: '1px solid #ef4444' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ color: '#f87171', fontWeight: 'bold', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <ShieldCheck size={18} color="#ef4444" /> 🛡️ TỔNG HỢP KÈO LOẠI 3 SỐ:
+                </span>
+                <span style={{ color: '#9ca3af', fontSize: '11px' }}>Khuyên dùng (An toàn)</span>
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {/* 3 Số Bỏ */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '0.9rem', width: '95px' }}>❌ LOẠI 3 SỐ:</span>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    {(loaiSo?.loai3 || []).map((n, i) => (
+                      <span key={i} style={{ backgroundColor: '#ef4444', color: 'white', fontWeight: '900', fontSize: '1.25rem', padding: '2px 12px', borderRadius: '6px', textDecoration: 'line-through', boxShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+                        {n}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Nút copy dàn 49 số & dàn 9 số */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
+                  {renderCopyButton(loaiSo?.dan49 || [], "Dàn 49 Số (Đánh 7 Số)")}
+                  {renderCopyButton(loaiSo?.dan9 || [], "🎯 Dàn 9 Số (Bắt 3 Số Loại)")}
+                </div>
+              </div>
+            </div>
+
+            {/* 2. MỤC LOẠI 4 SỐ */}
+            <div style={{ backgroundColor: '#0f172a', padding: '12px', borderRadius: '10px', border: '1px solid #f59e0b' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ color: '#fbbf24', fontWeight: 'bold', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Flame size={18} color="#f59e0b" /> ⚡ TỔNG HỢP KÈO LOẠI 4 SỐ:
+                </span>
+                <span style={{ color: '#9ca3af', fontSize: '11px' }}>Vốn ít (Lãi to)</span>
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {/* 4 Số Bỏ */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '0.9rem', width: '95px' }}>❌ LOẠI 4 SỐ:</span>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    {(loaiSo?.loai4 || []).map((n, i) => (
+                      <span key={i} style={{ backgroundColor: '#ef4444', color: 'white', fontWeight: '900', fontSize: '1.25rem', padding: '2px 12px', borderRadius: '6px', textDecoration: 'line-through', boxShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+                        {n}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Nút copy dàn 36 số & dàn 16 số */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
+                  {renderCopyButton(loaiSo?.dan36 || [], "Dàn 36 Số (Đánh 6 Số)")}
+                  {renderCopyButton(loaiSo?.dan16 || [], "⚡ Dàn 16 Số (Bắt 4 Số Loại)")}
+                </div>
+              </div>
+            </div>
+
+            {/* Thống kê 10 kỳ gần nhất */}
+            {renderStreak10()}
+
+            {/* ========================================================================= */}
+            {/* PHẦN 2: 🟢 CHI TIẾT 10 CẦU THUẬN CỐT LÕI */}
+            {/* ========================================================================= */}
+            {loaiSo?.activeBridgeName && (
+              <div style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', borderRadius: '8px', padding: '6px 12px', color: '#34d399', fontSize: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+                {loaiSo.activeBridgeName}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#064e3b', padding: '8px 12px', borderRadius: '8px', border: '1px solid #059669', marginTop: '4px' }}>
               <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#6ee7b7', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 🟢 BẢNG 10 CẦU THUẬN CỐT LÕI (BÓNG DƯƠNG & BÓNG ÂM)
               </span>
               <span style={{ fontSize: '11px', color: '#a7f3d0' }}>Chuẩn Lotobet</span>
             </div>
 
-            {loaiSo?.activeBridgeName && (
-              <div style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', borderRadius: '8px', padding: '6px 12px', color: '#34d399', fontSize: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                {loaiSo.activeBridgeName}
-              </div>
-            )}
-
-            {/* Render 5 Cards cho 5 Cầu */}
+            {/* Render Cards cho 10 Cầu */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {(loaiSo?.bridgeStats || []).map((b, idx) => {
                 const isHot = b.isRecommended; // streak >= 3 tay
@@ -280,72 +349,6 @@ const ExecutiveDashboard = ({
                 );
               })}
             </div>
-
-            {/* ========================================================================= */}
-            {/* KHU VỰC 2: 🛡️ TỔNG HỢP KÈO LOẠI 3 SỐ & 4 SỐ (TỪ CÁC CẦU THÔNG NHẤT) */}
-            {/* ========================================================================= */}
-            {/* 1. MỤC LOẠI 3 SỐ */}
-            <div style={{ backgroundColor: '#0f172a', padding: '12px', borderRadius: '10px', border: '1px solid #ef4444', marginTop: '4px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ color: '#f87171', fontWeight: 'bold', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <ShieldCheck size={18} color="#ef4444" /> 🛡️ TỔNG HỢP KÈO LOẠI 3 SỐ:
-                </span>
-                <span style={{ color: '#9ca3af', fontSize: '11px' }}>Khuyên dùng (An toàn)</span>
-              </div>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {/* 3 Số Bỏ */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '0.9rem', width: '95px' }}>❌ LOẠI 3 SỐ:</span>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    {(loaiSo?.loai3 || []).map((n, i) => (
-                      <span key={i} style={{ backgroundColor: '#ef4444', color: 'white', fontWeight: '900', fontSize: '1.25rem', padding: '2px 12px', borderRadius: '6px', textDecoration: 'line-through', boxShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-                        {n}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Nút copy dàn 49 số & dàn 9 số */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
-                  {renderCopyButton(loaiSo?.dan49 || [], "Dàn 49 Số (Đánh 7 Số)")}
-                  {renderCopyButton(loaiSo?.dan9 || [], "🎯 Dàn 9 Số (Bắt 3 Số Loại)")}
-                </div>
-              </div>
-            </div>
-
-            {/* 2. MỤC LOẠI 4 SỐ */}
-            <div style={{ backgroundColor: '#0f172a', padding: '12px', borderRadius: '10px', border: '1px solid #f59e0b' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ color: '#fbbf24', fontWeight: 'bold', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Flame size={18} color="#f59e0b" /> ⚡ TỔNG HỢP KÈO LOẠI 4 SỐ:
-                </span>
-                <span style={{ color: '#9ca3af', fontSize: '11px' }}>Vốn ít (Lãi to)</span>
-              </div>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {/* 4 Số Bỏ */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '0.9rem', width: '95px' }}>❌ LOẠI 4 SỐ:</span>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    {(loaiSo?.loai4 || []).map((n, i) => (
-                      <span key={i} style={{ backgroundColor: '#ef4444', color: 'white', fontWeight: '900', fontSize: '1.25rem', padding: '2px 12px', borderRadius: '6px', textDecoration: 'line-through', boxShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-                        {n}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Nút copy dàn 36 số & dàn 16 số */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
-                  {renderCopyButton(loaiSo?.dan36 || [], "Dàn 36 Số (Đánh 6 Số)")}
-                  {renderCopyButton(loaiSo?.dan16 || [], "⚡ Dàn 16 Số (Bắt 4 Số Loại)")}
-                </div>
-              </div>
-            </div>
-
-            {/* Thống kê 10 kỳ gần nhất */}
-            {renderStreak10()}
 
           </div>
           
@@ -491,36 +494,7 @@ const ExecutiveDashboard = ({
           
           {historyCheck ? (
             <>
-              {/* Đối chiếu 5 Cầu Thuận Kỳ Vừa Xổ */}
-              {historyCheck.pLoaiSo?.bridgeStats && (
-                <div style={{ backgroundColor: '#0f172a', padding: '12px', borderRadius: '10px', border: '1px solid #10b981', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 'bold', color: '#34d399', fontSize: '0.9rem' }}>
-                      🟢 ĐỐI CHIẾU 10 CẦU THUẬN KỲ VỪA XỔ:
-                    </span>
-                    <span style={{ fontSize: '11px', color: '#9ca3af' }}>Về Hậu Nhị: <strong style={{ color: '#facc15' }}>{historyCheck.resultHau}</strong></span>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    {historyCheck.pLoaiSo.bridgeStats.map((b, idx) => {
-                      const isWin = !historyCheck.resultHau?.includes(b.predDigit);
-                      return (
-                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: isWin ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)', padding: '6px 10px', borderRadius: '6px', border: isWin ? '1px solid #059669' : '1px solid #ef4444' }}>
-                          <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#f1f5f9' }}>{b.name}</span>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span style={{ fontSize: '11px', color: '#94a3b8' }}>Cắt: [{b.predDigit}]</span>
-                            <span style={{ fontSize: '11px', fontWeight: 'bold', color: isWin ? '#34d399' : '#f87171' }}>
-                              {isWin ? '✅ THẮNG' : '❌ THUA'}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Đối chiếu Loại 3 Số & Loại 4 Số Hậu Nhị */}
+              {/* Đối chiếu Loại 3 Số & Loại 4 Số Hậu Nhị (Đưa lên trên) */}
               {historyCheck.pLoaiSo && (
                 <div style={{ backgroundColor: '#0f172a', padding: '10px', borderRadius: '8px', border: '1px solid #334155' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
@@ -551,6 +525,35 @@ const ExecutiveDashboard = ({
                   </div>
                   {/* Thống kê 10 kỳ gần nhất */}
                   {renderStreak10()}
+                </div>
+              )}
+
+              {/* Đối chiếu 10 Cầu Thuận Kỳ Vừa Xổ */}
+              {historyCheck.pLoaiSo?.bridgeStats && (
+                <div style={{ backgroundColor: '#0f172a', padding: '12px', borderRadius: '10px', border: '1px solid #10b981', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 'bold', color: '#34d399', fontSize: '0.9rem' }}>
+                      🟢 ĐỐI CHIẾU 10 CẦU THUẬN KỲ VỪA XỔ:
+                    </span>
+                    <span style={{ fontSize: '11px', color: '#9ca3af' }}>Về Hậu Nhị: <strong style={{ color: '#facc15' }}>{historyCheck.resultHau}</strong></span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {historyCheck.pLoaiSo.bridgeStats.map((b, idx) => {
+                      const isWin = !historyCheck.resultHau?.includes(b.predDigit);
+                      return (
+                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: isWin ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)', padding: '6px 10px', borderRadius: '6px', border: isWin ? '1px solid #059669' : '1px solid #ef4444' }}>
+                          <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#f1f5f9' }}>{b.name}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ fontSize: '11px', color: '#94a3b8' }}>Cắt: [{b.predDigit}]</span>
+                            <span style={{ fontSize: '11px', fontWeight: 'bold', color: isWin ? '#34d399' : '#f87171' }}>
+                              {isWin ? '✅ THẮNG' : '❌ THUA'}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
 
