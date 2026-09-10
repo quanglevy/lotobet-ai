@@ -624,27 +624,44 @@ export const getLoaiSoHauNhi = (rawData) => {
     };
   });
 
-  // 2. Chấm điểm từng chữ số để gom KÈO LOẠI 3 SỐ & 4 SỐ tối ưu nhất
-  const digitScores = {};
-  for (let i = 0; i < 10; i++) digitScores[i.toString()] = 0;
+  // 2. Chấm điểm theo TẦN SUẤT CÁC CẦU BÁO TRÙNG NHAU (Nhiều cầu báo loại nhất -> Ưu tiên loại trước)
+  const digitCounts = {};
+  const digitWinRateSum = {};
+  const digitBridges = {};
+
+  for (let i = 0; i < 10; i++) {
+    const d = i.toString();
+    digitCounts[d] = 0;
+    digitWinRateSum[d] = 0;
+    digitBridges[d] = [];
+  }
 
   bridgeStats.forEach(b => {
     const d = b.predDigit;
-    if (b.streak >= 3) {
-      // Cầu thông >= 3 tay: Ưu tiên loại số này cực mạnh (+1000 điểm)
-      digitScores[d] += b.streak * 500 + 1000;
-    } else if (b.streak >= 1) {
-      digitScores[d] += b.streak * 100 + 200;
+    if (d !== undefined && d !== null) {
+      digitCounts[d] = (digitCounts[d] || 0) + 1;
+      digitWinRateSum[d] = (digitWinRateSum[d] || 0) + (b.winRate || 70);
+      digitBridges[d].push(b.shortName || b.name);
     }
-    digitScores[d] += b.winRate * 5;
   });
 
-  const sortedDigits = Object.keys(digitScores).sort((a, b) => digitScores[b] - digitScores[a]);
+  // Sắp xếp các số theo số lượng cầu báo trùng nhau (nhiều cầu báo nhất xếp trước)
+  const sortedDigits = Object.keys(digitCounts).sort((a, b) => {
+    // 1. Ưu tiên số có nhiều cầu báo trùng nhau nhất
+    if (digitCounts[b] !== digitCounts[a]) {
+      return digitCounts[b] - digitCounts[a];
+    }
+    // 2. Nếu cùng số lượng cầu báo: Xét tổng tỷ lệ thắng của các cầu đó
+    if (digitWinRateSum[b] !== digitWinRateSum[a]) {
+      return digitWinRateSum[b] - digitWinRateSum[a];
+    }
+    return parseInt(a) - parseInt(b);
+  });
 
-  const loai3 = sortedDigits.slice(0, 3).sort((a, b) => a - b);
+  const loai3 = sortedDigits.slice(0, 3);
   const giu7 = sortedDigits.slice(3).sort((a, b) => a - b);
 
-  const loai4 = sortedDigits.slice(0, 4).sort((a, b) => a - b);
+  const loai4 = sortedDigits.slice(0, 4);
   const giu6 = sortedDigits.slice(4).sort((a, b) => a - b);
 
   // Sinh dàn 49 số & 36 số (đánh số giữ lại)
@@ -682,6 +699,8 @@ export const getLoaiSoHauNhi = (rawData) => {
   return {
     bridgeStats,
     recommendedBridges,
+    digitCounts,
+    digitBridges,
     loai3,
     giu7,
     loai4,

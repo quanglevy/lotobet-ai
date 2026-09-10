@@ -199,19 +199,29 @@ const ExecutiveDashboard = ({
                 <span style={{ color: '#f87171', fontWeight: 'bold', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <ShieldCheck size={18} color="#ef4444" /> 🛡️ TỔNG HỢP KÈO LOẠI 3 SỐ:
                 </span>
-                <span style={{ color: '#9ca3af', fontSize: '11px' }}>Khuyên dùng (An toàn)</span>
+                <span style={{ color: '#9ca3af', fontSize: '11px' }}>Ưu tiên số nhiều cầu trùng ({loaiSo?.loai3?.length || 3} số)</span>
               </div>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {/* 3 Số Bỏ */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '0.9rem', width: '95px' }}>❌ LOẠI 3 SỐ:</span>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    {(loaiSo?.loai3 || []).map((n, i) => (
-                      <span key={i} style={{ backgroundColor: '#ef4444', color: 'white', fontWeight: '900', fontSize: '1.25rem', padding: '2px 12px', borderRadius: '6px', textDecoration: 'line-through', boxShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-                        {n}
-                      </span>
-                    ))}
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {(loaiSo?.loai3 || []).map((n, i) => {
+                      const count = loaiSo?.digitCounts ? loaiSo.digitCounts[n] : 0;
+                      return (
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: '#ef4444', padding: '2px 8px', borderRadius: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+                          <span style={{ color: 'white', fontWeight: '900', fontSize: '1.25rem', textDecoration: 'line-through' }}>
+                            {n}
+                          </span>
+                          {count > 0 && (
+                            <span style={{ color: '#fee2e2', fontSize: '10.5px', fontWeight: 'bold', backgroundColor: 'rgba(0,0,0,0.35)', padding: '1px 5px', borderRadius: '4px' }}>
+                              {count} cầu
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -229,19 +239,29 @@ const ExecutiveDashboard = ({
                 <span style={{ color: '#fbbf24', fontWeight: 'bold', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Flame size={18} color="#f59e0b" /> ⚡ TỔNG HỢP KÈO LOẠI 4 SỐ:
                 </span>
-                <span style={{ color: '#9ca3af', fontSize: '11px' }}>Vốn ít (Lãi to)</span>
+                <span style={{ color: '#9ca3af', fontSize: '11px' }}>Vốn ít (Lãi to - {loaiSo?.loai4?.length || 4} số)</span>
               </div>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {/* 4 Số Bỏ */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '0.9rem', width: '95px' }}>❌ LOẠI 4 SỐ:</span>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    {(loaiSo?.loai4 || []).map((n, i) => (
-                      <span key={i} style={{ backgroundColor: '#ef4444', color: 'white', fontWeight: '900', fontSize: '1.25rem', padding: '2px 12px', borderRadius: '6px', textDecoration: 'line-through', boxShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-                        {n}
-                      </span>
-                    ))}
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {(loaiSo?.loai4 || []).map((n, i) => {
+                      const count = loaiSo?.digitCounts ? loaiSo.digitCounts[n] : 0;
+                      return (
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: '#ef4444', padding: '2px 8px', borderRadius: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+                          <span style={{ color: 'white', fontWeight: '900', fontSize: '1.25rem', textDecoration: 'line-through' }}>
+                            {n}
+                          </span>
+                          {count > 0 && (
+                            <span style={{ color: '#fee2e2', fontSize: '10.5px', fontWeight: 'bold', backgroundColor: 'rgba(0,0,0,0.35)', padding: '1px 5px', borderRadius: '4px' }}>
+                              {count} cầu
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
