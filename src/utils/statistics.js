@@ -358,7 +358,7 @@ export const analyzeSingleDigits = (data) => {
 
 // ============================================================================
 // ============================================================================
-// HỆ THỐNG 7 CẦU THUẬN CỐT LÕI (BÓNG DƯƠNG & CÔNG THỨC CHUẨN LOTOBET):
+// HỆ THỐNG 10 CẦU THUẬN CỐT LÕI (BÓNG DƯƠNG & BÓNG ÂM TRỪ 1 CHUẨN LOTOBET):
 // 1. Cầu 1: Tổng con Ngàn (d1) + con Trăm (d2) -> Bóng Dương -> Số Loại
 // 2. Cầu 2: Tổng con Trăm (d2) + con Chục (d3) -> Bóng Dương -> Số Loại
 // 3. Cầu 3: Tổng con Chục (d3) + con Đơn vị (d4) -> Bóng Dương -> Số Loại
@@ -366,6 +366,9 @@ export const analyzeSingleDigits = (data) => {
 // 5. Cầu 5: Tổng 3 con cuối (d2 + d3 + d4) -> Bóng Dương -> Số Loại
 // 6. Cầu 6: Con Trăm (d2) × 2 -> Bóng Dương -> Số Loại
 // 7. Cầu 7: Tổng 3 con giữa (d1 + d2 + d3) -> Bóng Dương -> Số Loại
+// 8. Cầu 8: Con Đơn vị (d4) -> Bóng Âm -> Trừ 1 -> Số Loại
+// 9. Cầu 9: Con Chục nghìn / Vạn (d0) -> Bóng Âm -> Trừ 1 -> Số Loại
+// 10. Cầu 10: Con Hàng trăm / Giữa (d2) -> Bóng Âm -> Trừ 1 -> Số Loại
 // Bám nhịp ăn thông >= 3 tay -> Bôi xanh & Khuyến khích
 // ============================================================================
 
@@ -485,6 +488,51 @@ export const CORE_BRIDGES = [
       };
     },
     calc: (d) => getBongDuong((parseInt(d[1]) + parseInt(d[2]) + parseInt(d[3])) % 10)
+  },
+  {
+    id: 'cau_8_ba_dv_tru_1',
+    name: 'Cầu 8: Bóng Âm Đơn Vị - 1',
+    shortName: 'Bóng Âm ĐV - 1',
+    calcFormula: (d) => {
+      const dv = d[4];
+      const ba = getBongAm(dv);
+      const loai = ((parseInt(ba) - 1 + 10) % 10).toString();
+      return {
+        formulaText: `Đơn vị: ${dv} ➔ Bóng âm: ${ba} ➔ Trừ 1: ${loai}`,
+        digit: loai
+      };
+    },
+    calc: (d) => ((parseInt(getBongAm(d[4])) - 1 + 10) % 10).toString()
+  },
+  {
+    id: 'cau_9_ba_van_tru_1',
+    name: 'Cầu 9: Bóng Âm Vạn (Đầu) - 1',
+    shortName: 'Bóng Âm Vạn - 1',
+    calcFormula: (d) => {
+      const van = d[0];
+      const ba = getBongAm(van);
+      const loai = ((parseInt(ba) - 1 + 10) % 10).toString();
+      return {
+        formulaText: `Chục nghìn: ${van} ➔ Bóng âm: ${ba} ➔ Trừ 1: ${loai}`,
+        digit: loai
+      };
+    },
+    calc: (d) => ((parseInt(getBongAm(d[0])) - 1 + 10) % 10).toString()
+  },
+  {
+    id: 'cau_10_ba_tram_tru_1',
+    name: 'Cầu 10: Bóng Âm Trăm (Giữa) - 1',
+    shortName: 'Bóng Âm Trăm - 1',
+    calcFormula: (d) => {
+      const tram = d[2];
+      const ba = getBongAm(tram);
+      const loai = ((parseInt(ba) - 1 + 10) % 10).toString();
+      return {
+        formulaText: `Hàng trăm: ${tram} ➔ Bóng âm: ${ba} ➔ Trừ 1: ${loai}`,
+        digit: loai
+      };
+    },
+    calc: (d) => ((parseInt(getBongAm(d[2])) - 1 + 10) % 10).toString()
   }
 ];
 
@@ -629,7 +677,7 @@ export const getLoaiSoHauNhi = (rawData) => {
     .sort((a, b) => b.streak - a.streak)
     .map(b => `${b.shortName} (${b.streak >= 3 ? '🔥 Thông ' : 'Ăn '}${b.streak} tay ➔ Loại ${b.predDigit})`);
 
-  const trendReason = `⚡ Trạng thái 5 Cầu: ${streakSummaries.join(' | ')}`;
+  const trendReason = `⚡ Trạng thái 10 Cầu: ${streakSummaries.join(' | ')}`;
 
   return {
     bridgeStats,
