@@ -229,464 +229,35 @@ export const predictTXCL = (data) => {
 };
 
 // ============================================================================
-// CÁC HÀM CẦU CỐT LÕI (5 TRƯỜNG PHÁI BẮT SỐ 5 TINH)
-// ============================================================================
-export const getPascalPeak = (draw) => {
-  let row = draw.split('').map(Number);
-  while (row.length > 1) {
-    let nextRow = [];
-    for (let i = 0; i < row.length - 1; i++) {
-      nextRow.push((row[i] + row[i+1]) % 10);
-    }
-    row = nextRow;
-  }
-  return row[0].toString();
-};
-
-export const getBridges = (draw) => {
-  const d = draw.split('').map(Number);
-  const pPeak = getPascalPeak(draw);
-  return {
-    "Bạc Nhớ Đối Ứng": [BO_TRA_NHAU[d[2].toString()], BO_TRA_NHAU[d[4].toString()]],
-    "Pascal Ma Trận": [pPeak, getBongDuong(pPeak)],
-    "Bệt Rơi Tâm Càng": [d[2].toString(), d[4].toString()],
-    "Tổng Đối Xứng": [((d[0] + d[4]) % 10).toString(), ((d[1] + d[3]) % 10).toString()],
-    "Bóng Dương Tâm": [getBongDuong(d[0].toString()), getBongDuong(d[2].toString())]
-  };
-};
-
-// ============================================================================
-// THUẬT TOÁN ĐA CẦU TỰ THÍCH ỨNG: DÒ CẦU ĐANG ĂN THÔNG CHO "3 SỐ 5 TINH"
-// ============================================================================
-export const getAdaptive3So5Tinh = (rawData) => {
-  if (!rawData || rawData.length === 0) {
-    return {
-      dan3: ['0', '1', '2'],
-      dan4: ['0', '1', '2', '3'],
-      dan5: ['0', '1', '2', '3', '4'],
-      topBridge: 'Khởi tạo mặc định',
-      bridgeDetail: 'Chưa có dữ liệu lịch sử'
-    };
-  }
-
-  const ascData = [...rawData].reverse();
-  const lastDraw = ascData[ascData.length - 1].Result;
-  const lastBridges = getBridges(lastDraw);
-
-  if (ascData.length < 2) {
-    const d3 = [...new Set([...lastBridges["Bạc Nhớ Đối Ứng"], ...lastBridges["Pascal Ma Trận"]])].slice(0, 3);
-    return {
-      dan3: d3,
-      dan4: [...new Set([...d3, lastBridges["Tổng Đối Xứng"][0]])].slice(0, 4),
-      dan5: [...new Set([...d3, lastBridges["Tổng Đối Xứng"][0], lastBridges["Bệt Rơi Tâm Càng"][0]])].slice(0, 5),
-      topBridge: 'Bạc Nhớ Đối Ứng (Khởi tạo)',
-      bridgeDetail: 'Bạc nhớ Trăm trả + Đơn vị trả'
-    };
-  }
-
-  const bridgeScores = {
-    "Bạc Nhớ Đối Ứng": 0,
-    "Pascal Ma Trận": 0,
-    "Bệt Rơi Tâm Càng": 0,
-    "Tổng Đối Xứng": 0,
-    "Bóng Dương Tâm": 0
-  };
-
-  const checkWindow = Math.min(4, ascData.length - 1);
-  const startIdx = ascData.length - 1 - checkWindow;
-
-  for (let i = startIdx; i < ascData.length - 1; i++) {
-    const curr = ascData[i].Result;
-    const next = ascData[i+1].Result;
-    const b = getBridges(curr);
-    const weight = (i - startIdx + 1) * 3;
-    for (const [name, nums] of Object.entries(b)) {
-      if (nums.some(n => next.includes(n))) {
-        bridgeScores[name] += weight;
-      }
-    }
-  }
-
-  const sortedBridges = Object.keys(bridgeScores).sort((a, b) => bridgeScores[b] - bridgeScores[a]);
-  const topBridgeName = sortedBridges[0];
-
-  const digitPoints = {};
-  for (let i = 0; i < 10; i++) digitPoints[i.toString()] = 0;
-
-  sortedBridges.forEach((bName, rank) => {
-    const pts = (5 - rank) * 15;
-    lastBridges[bName].forEach(num => {
-      digitPoints[num] += pts;
-    });
-  });
-
-  const sortedDigits = Object.keys(digitPoints).sort((a, b) => digitPoints[b] - digitPoints[a]);
-  const dan3 = sortedDigits.slice(0, 3);
-  const dan4 = sortedDigits.slice(0, 4);
-  const dan5 = sortedDigits.slice(0, 5);
-
-  const bridgeDetail = `AI bám cầu [${topBridgeName}] (Điểm ăn thông: ${bridgeScores[topBridgeName]}) • Kết hợp: ${sortedBridges[1]}`;
-
-  return {
-    dan3,
-    dan4,
-    dan5,
-    topBridge: topBridgeName,
-    bridgeDetail,
-    scores: bridgeScores
-  };
-};
-
-export const analyzeSingleDigits = (data) => {
-  if (!data || data.length === 0) return [];
-  const adaptive = getAdaptive3So5Tinh(data);
-  const { dan5 } = adaptive;
-
-  const result = [];
-  dan5.forEach((d, idx) => {
-    const score = 5000 - idx * 500;
-    const r = idx === 0 ? `Cầu Đang Thông 1 (${adaptive.topBridge})` : idx === 1 ? 'Cầu Đang Thông 2' : idx === 2 ? 'Cầu Đang Thông 3' : 'Bóng Hỗ Trợ';
-    result.push({
-      number: d,
-      score: score,
-      reason: [r]
-    });
-  });
-
-  return result;
-};
-
-// ============================================================================
-// ============================================================================
-// HỆ THỐNG 18 CẦU THUẬN CỐT LÕI (BÓNG DƯƠNG, BÓNG ÂM TRỪ 1 & TỔNG/NHÂN TRỰC TIẾP):
-// 1. Cầu 1: Tổng con Ngàn (d1) + con Trăm (d2) -> Bóng Dương -> Số Loại
-// 2. Cầu 2: Tổng con Trăm (d2) + con Chục (d3) -> Bóng Dương -> Số Loại
-// 3. Cầu 3: Tổng con Chục (d3) + con Đơn vị (d4) -> Bóng Dương -> Số Loại
-// 4. Cầu 4: Con Đơn vị (d4) × 2 -> Bóng Dương -> Số Loại
-// 5. Cầu 5: Tổng 3 con cuối (d2 + d3 + d4) -> Bóng Dương -> Số Loại
-// 6. Cầu 6: Con Trăm (d2) × 2 -> Bóng Dương -> Số Loại
-// 7. Cầu 7: Tổng 3 con giữa (d1 + d2 + d3) -> Bóng Dương -> Số Loại
-// 8. Cầu 8: Con Đơn vị (d4) -> Bóng Âm -> Trừ 1 -> Số Loại
-// 9. Cầu 9: Con Chục nghìn / Vạn (d0) -> Bóng Âm -> Trừ 1 -> Số Loại
-// 10. Cầu 10: Con Hàng trăm / Giữa (d2) -> Bóng Âm -> Trừ 1 -> Số Loại
-// 11. Cầu 11: Tổng con Ngàn (d1) + con Trăm (d2) -> Số Loại (Trực tiếp)
-// 12. Cầu 12: Tổng con Trăm (d2) + con Chục (d3) -> Số Loại (Trực tiếp)
-// 13. Cầu 13: Tổng con Chục (d3) + con Đơn vị (d4) -> Số Loại (Trực tiếp)
-// 14. Cầu 14: Con Đơn vị (d4) × 2 -> Số Loại (Trực tiếp)
-// 15. Cầu 15: Tổng 3 con cuối (d2 + d3 + d4) -> Số Loại (Trực tiếp)
-// 16. Cầu 16: Con Trăm (d2) × 2 -> Số Loại (Trực tiếp)
-// 17. Cầu 17: Tổng 3 con giữa (d1 + d2 + d3) -> Số Loại (Trực tiếp)
-// 18. Cầu 18: Tổng 3 con đầu (d0 + d1 + d2) -> Số Loại (Trực tiếp)
-// Bám nhịp ăn thông >= 3 tay -> Bôi xanh & Khuyến khích
+// HỆ THỐNG CẦU BẮT SỐ CỐT LÕI (SẴN SÀNG THIẾT LẬP CÔNG THỨC MỚI TỪ ĐẦU)
 // ============================================================================
 
 export const CORE_BRIDGES = [
-  {
-    id: 'cau_1_ngan_tram',
-    name: 'Cầu 1: Tổng Ngàn + Trăm',
-    shortName: 'Tổng Ngàn + Trăm (Bóng Dương)',
-    calcFormula: (d) => {
-      const ngan = parseInt(d[1]);
-      const tram = parseInt(d[2]);
-      const sum = (ngan + tram) % 10;
-      const loai = getBongDuong(sum);
-      return {
-        formulaText: `${ngan} + ${tram} = ${ngan + tram} (tổng ${sum}) ➔ Bóng dương: ${loai}`,
-        digit: loai
-      };
-    },
-    calc: (d) => getBongDuong((parseInt(d[1]) + parseInt(d[2])) % 10)
-  },
-  {
-    id: 'cau_2_tram_chuc',
-    name: 'Cầu 2: Tổng Trăm + Chục',
-    shortName: 'Tổng Trăm + Chục (Bóng Dương)',
-    calcFormula: (d) => {
-      const tram = parseInt(d[2]);
-      const chuc = parseInt(d[3]);
-      const sum = (tram + chuc) % 10;
-      const loai = getBongDuong(sum);
-      return {
-        formulaText: `${tram} + ${chuc} = ${tram + chuc} (tổng ${sum}) ➔ Bóng dương: ${loai}`,
-        digit: loai
-      };
-    },
-    calc: (d) => getBongDuong((parseInt(d[2]) + parseInt(d[3])) % 10)
-  },
-  {
-    id: 'cau_3_chuc_dv',
-    name: 'Cầu 3: Tổng Chục + Đơn Vị',
-    shortName: 'Tổng Chục + ĐV (Bóng Dương)',
-    calcFormula: (d) => {
-      const chuc = parseInt(d[3]);
-      const dv = parseInt(d[4]);
-      const sum = (chuc + dv) % 10;
-      const loai = getBongDuong(sum);
-      return {
-        formulaText: `${chuc} + ${dv} = ${chuc + dv} (tổng ${sum}) ➔ Bóng dương: ${loai}`,
-        digit: loai
-      };
-    },
-    calc: (d) => getBongDuong((parseInt(d[3]) + parseInt(d[4])) % 10)
-  },
-  {
-    id: 'cau_4_dv_nhan_2',
-    name: 'Cầu 4: Đơn Vị × 2',
-    shortName: 'Đơn Vị × 2 (Bóng Dương)',
-    calcFormula: (d) => {
-      const dv = parseInt(d[4]);
-      const mult = dv * 2;
-      const lastDigit = mult % 10;
-      const loai = getBongDuong(lastDigit);
-      return {
-        formulaText: `${dv} × 2 = ${mult} (tổng ${lastDigit}) ➔ Bóng dương: ${loai}`,
-        digit: loai
-      };
-    },
-    calc: (d) => getBongDuong((parseInt(d[4]) * 2) % 10)
-  },
-  {
-    id: 'cau_5_tong_3_cuoi',
-    name: 'Cầu 5: Tổng 3 Con Cuối',
-    shortName: 'Tổng 3 Cuối (Bóng Dương)',
-    calcFormula: (d) => {
-      const tram = parseInt(d[2]);
-      const chuc = parseInt(d[3]);
-      const dv = parseInt(d[4]);
-      const sum = tram + chuc + dv;
-      const lastDigit = sum % 10;
-      const loai = getBongDuong(lastDigit);
-      return {
-        formulaText: `${tram} + ${chuc} + ${dv} = ${sum} (tổng ${lastDigit}) ➔ Bóng dương: ${loai}`,
-        digit: loai
-      };
-    },
-    calc: (d) => getBongDuong((parseInt(d[2]) + parseInt(d[3]) + parseInt(d[4])) % 10)
-  },
-  {
-    id: 'cau_6_tram_nhan_2',
-    name: 'Cầu 6: Con Trăm × 2',
-    shortName: 'Con Trăm × 2 (Bóng Dương)',
-    calcFormula: (d) => {
-      const tram = parseInt(d[2]);
-      const mult = tram * 2;
-      const lastDigit = mult % 10;
-      const loai = getBongDuong(lastDigit);
-      return {
-        formulaText: `${tram} × 2 = ${mult} (tổng ${lastDigit}) ➔ Bóng dương: ${loai}`,
-        digit: loai
-      };
-    },
-    calc: (d) => getBongDuong((parseInt(d[2]) * 2) % 10)
-  },
-  {
-    id: 'cau_7_tong_3_giua',
-    name: 'Cầu 7: Tổng 3 Con Giữa',
-    shortName: 'Tổng 3 Giữa (Bóng Dương)',
-    calcFormula: (d) => {
-      const ngan = parseInt(d[1]);
-      const tram = parseInt(d[2]);
-      const chuc = parseInt(d[3]);
-      const sum = ngan + tram + chuc;
-      const lastDigit = sum % 10;
-      const loai = getBongDuong(lastDigit);
-      return {
-        formulaText: `${ngan} + ${tram} + ${chuc} = ${sum} (tổng ${lastDigit}) ➔ Bóng dương: ${loai}`,
-        digit: loai
-      };
-    },
-    calc: (d) => getBongDuong((parseInt(d[1]) + parseInt(d[2]) + parseInt(d[3])) % 10)
-  },
-  {
-    id: 'cau_8_ba_dv_tru_1',
-    name: 'Cầu 8: Bóng Âm Đơn Vị - 1',
-    shortName: 'Bóng Âm ĐV - 1',
-    calcFormula: (d) => {
-      const dv = d[4];
-      const ba = getBongAm(dv);
-      const loai = ((parseInt(ba) - 1 + 10) % 10).toString();
-      return {
-        formulaText: `Đơn vị: ${dv} ➔ Bóng âm: ${ba} ➔ Trừ 1: ${loai}`,
-        digit: loai
-      };
-    },
-    calc: (d) => ((parseInt(getBongAm(d[4])) - 1 + 10) % 10).toString()
-  },
-  {
-    id: 'cau_9_ba_van_tru_1',
-    name: 'Cầu 9: Bóng Âm Vạn (Đầu) - 1',
-    shortName: 'Bóng Âm Vạn - 1',
-    calcFormula: (d) => {
-      const van = d[0];
-      const ba = getBongAm(van);
-      const loai = ((parseInt(ba) - 1 + 10) % 10).toString();
-      return {
-        formulaText: `Chục nghìn: ${van} ➔ Bóng âm: ${ba} ➔ Trừ 1: ${loai}`,
-        digit: loai
-      };
-    },
-    calc: (d) => ((parseInt(getBongAm(d[0])) - 1 + 10) % 10).toString()
-  },
-  {
-    id: 'cau_10_ba_tram_tru_1',
-    name: 'Cầu 10: Bóng Âm Trăm (Giữa) - 1',
-    shortName: 'Bóng Âm Trăm - 1',
-    calcFormula: (d) => {
-      const tram = d[2];
-      const ba = getBongAm(tram);
-      const loai = ((parseInt(ba) - 1 + 10) % 10).toString();
-      return {
-        formulaText: `Hàng trăm: ${tram} ➔ Bóng âm: ${ba} ➔ Trừ 1: ${loai}`,
-        digit: loai
-      };
-    },
-    calc: (d) => ((parseInt(getBongAm(d[2])) - 1 + 10) % 10).toString()
-  },
-  {
-    id: 'cau_11_ngan_tram_tt',
-    name: 'Cầu 11: Tổng Ngàn + Trăm',
-    shortName: 'Tổng Ngàn + Trăm (TT)',
-    calcFormula: (d) => {
-      const ngan = parseInt(d[1]);
-      const tram = parseInt(d[2]);
-      const sum = (ngan + tram) % 10;
-      return {
-        formulaText: `${ngan} + ${tram} = ${ngan + tram} (tổng ${sum}) ➔ Loại: ${sum}`,
-        digit: sum.toString()
-      };
-    },
-    calc: (d) => ((parseInt(d[1]) + parseInt(d[2])) % 10).toString()
-  },
-  {
-    id: 'cau_12_tram_chuc_tt',
-    name: 'Cầu 12: Tổng Trăm + Chục',
-    shortName: 'Tổng Trăm + Chục (TT)',
-    calcFormula: (d) => {
-      const tram = parseInt(d[2]);
-      const chuc = parseInt(d[3]);
-      const sum = (tram + chuc) % 10;
-      return {
-        formulaText: `${tram} + ${chuc} = ${tram + chuc} (tổng ${sum}) ➔ Loại: ${sum}`,
-        digit: sum.toString()
-      };
-    },
-    calc: (d) => ((parseInt(d[2]) + parseInt(d[3])) % 10).toString()
-  },
-  {
-    id: 'cau_13_chuc_dv_tt',
-    name: 'Cầu 13: Tổng Chục + Đơn Vị',
-    shortName: 'Tổng Chục + ĐV (TT)',
-    calcFormula: (d) => {
-      const chuc = parseInt(d[3]);
-      const dv = parseInt(d[4]);
-      const sum = (chuc + dv) % 10;
-      return {
-        formulaText: `${chuc} + ${dv} = ${chuc + dv} (tổng ${sum}) ➔ Loại: ${sum}`,
-        digit: sum.toString()
-      };
-    },
-    calc: (d) => ((parseInt(d[3]) + parseInt(d[4])) % 10).toString()
-  },
-  {
-    id: 'cau_14_dv_nhan_2_tt',
-    name: 'Cầu 14: Đơn Vị × 2',
-    shortName: 'Đơn Vị × 2 (TT)',
-    calcFormula: (d) => {
-      const dv = parseInt(d[4]);
-      const mult = dv * 2;
-      const lastDigit = mult % 10;
-      return {
-        formulaText: `${dv} × 2 = ${mult} (tổng ${lastDigit}) ➔ Loại: ${lastDigit}`,
-        digit: lastDigit.toString()
-      };
-    },
-    calc: (d) => ((parseInt(d[4]) * 2) % 10).toString()
-  },
-  {
-    id: 'cau_15_tong_3_cuoi_tt',
-    name: 'Cầu 15: Tổng 3 Con Cuối',
-    shortName: 'Tổng 3 Cuối (TT)',
-    calcFormula: (d) => {
-      const tram = parseInt(d[2]);
-      const chuc = parseInt(d[3]);
-      const dv = parseInt(d[4]);
-      const sum = tram + chuc + dv;
-      const lastDigit = sum % 10;
-      return {
-        formulaText: `${tram} + ${chuc} + ${dv} = ${sum} (tổng ${lastDigit}) ➔ Loại: ${lastDigit}`,
-        digit: lastDigit.toString()
-      };
-    },
-    calc: (d) => ((parseInt(d[2]) + parseInt(d[3]) + parseInt(d[4])) % 10).toString()
-  },
-  {
-    id: 'cau_16_tram_nhan_2_tt',
-    name: 'Cầu 16: Con Trăm × 2',
-    shortName: 'Con Trăm × 2 (TT)',
-    calcFormula: (d) => {
-      const tram = parseInt(d[2]);
-      const mult = tram * 2;
-      const lastDigit = mult % 10;
-      return {
-        formulaText: `${tram} × 2 = ${mult} (tổng ${lastDigit}) ➔ Loại: ${lastDigit}`,
-        digit: lastDigit.toString()
-      };
-    },
-    calc: (d) => ((parseInt(d[2]) * 2) % 10).toString()
-  },
-  {
-    id: 'cau_17_tong_3_giua_tt',
-    name: 'Cầu 17: Tổng 3 Con Giữa',
-    shortName: 'Tổng 3 Giữa (TT)',
-    calcFormula: (d) => {
-      const ngan = parseInt(d[1]);
-      const tram = parseInt(d[2]);
-      const chuc = parseInt(d[3]);
-      const sum = ngan + tram + chuc;
-      const lastDigit = sum % 10;
-      return {
-        formulaText: `${ngan} + ${tram} + ${chuc} = ${sum} (tổng ${lastDigit}) ➔ Loại: ${lastDigit}`,
-        digit: lastDigit.toString()
-      };
-    },
-    calc: (d) => ((parseInt(d[1]) + parseInt(d[2]) + parseInt(d[3])) % 10).toString()
-  },
-  {
-    id: 'cau_18_tong_3_dau_tt',
-    name: 'Cầu 18: Tổng 3 Con Đầu',
-    shortName: 'Tổng 3 Đầu (TT)',
-    calcFormula: (d) => {
-      const van = parseInt(d[0]);
-      const ngan = parseInt(d[1]);
-      const tram = parseInt(d[2]);
-      const sum = van + ngan + tram;
-      const lastDigit = sum % 10;
-      return {
-        formulaText: `${van} + ${ngan} + ${tram} = ${sum} (tổng ${lastDigit}) ➔ Loại: ${lastDigit}`,
-        digit: lastDigit.toString()
-      };
-    },
-    calc: (d) => ((parseInt(d[0]) + parseInt(d[1]) + parseInt(d[2])) % 10).toString()
-  }
+  // Danh sách công thức cầu đã được làm sạch, sẵn sàng nạp công thức mới từ người dùng.
 ];
 
 export const FIVE_BRIDGES = CORE_BRIDGES;
 
+export const analyzeSingleDigits = (data) => [];
+
 export const getLoaiSoHauNhi = (rawData) => {
-  if (!rawData || rawData.length === 0) {
+  if (!rawData || rawData.length === 0 || CORE_BRIDGES.length === 0) {
     return {
       bridgeStats: [],
       recommendedBridges: [],
-      loai3: ['1', '7', '9'],
-      giu7: ['0', '2', '3', '4', '5', '6', '8'],
-      loai4: ['1', '7', '9', '2'],
-      giu6: ['0', '3', '4', '5', '6', '8'],
+      digitCounts: {},
+      digitBridges: {},
+      loai3: [],
+      giu7: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+      loai4: [],
+      giu6: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+      dan64: [],
       dan49: [],
       dan36: [],
       dan9: [],
       dan16: [],
-      activeBridgeName: 'Chưa đủ dữ liệu',
-      trendReason: 'Chưa đủ dữ liệu'
+      activeBridgeName: '',
+      trendReason: 'Đang chờ thiết lập công thức cầu mới'
     };
   }
 
@@ -1074,8 +645,6 @@ export const getBacNhoAnalysis = (rawData) => {
 export const calculateCauScore = (statsArray = [], scoredTongs = [], scoredSingles = [], rawData = []) => {
   const bn = getBacNhoAnalysis(rawData);
   const { touches, vipNumbers, nuoiBoNumbers, samTongs } = bn;
-  const adaptive35 = getAdaptive3So5Tinh(rawData);
-  const top3Single = adaptive35.dan3;
 
   const stats = [];
   for (let i = 0; i < 100; i++) {
@@ -1099,16 +668,7 @@ export const calculateCauScore = (statsArray = [], scoredTongs = [], scoredSingl
       itemReasons.push('Bộ Nuôi Bạc Nhớ');
     }
 
-    // TẦNG 3: SỐ KẾT HỢP TỪ CẦU ĐANG ĂN THÔNG 5 TINH (+3000 ĐIỂM)
-    if (top3Single.includes(d1) && top3Single.includes(d2)) {
-      score += 3000;
-      itemReasons.push('Bộ Cầu Đang Thông');
-    } else if (top3Single.includes(d1) || top3Single.includes(d2)) {
-      score += 1800;
-      itemReasons.push('Chạm Cầu Thông');
-    }
-
-    // TẦNG 4: SIÊU CHẠM BẠC NHỚ (+1500 -> +800 ĐIỂM)
+    // TẦNG 3: SIÊU CHẠM BẠC NHỚ (+1500 -> +800 ĐIỂM)
     if (d1 === touches[0] || d2 === touches[0]) {
       score += 1500;
       itemReasons.push(`Chạm Vàng (${touches[0]})`);
