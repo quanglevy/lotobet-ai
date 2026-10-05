@@ -442,47 +442,70 @@ export const getLoaiSoHauNhi = (rawData) => {
     const { formulaText, digit } = bridge.calcFormula(lastDraw);
     const winRate = totalChecked > 0 ? Math.round((totalWins / totalChecked) * 100) : 75;
 
-    // Phân tích trạng thái nhịp AI:
+    // Phân tích trạng thái nhịp AI chi tiết:
+    const h0 = history10[0]?.isWin;
+    const h1 = history10[1]?.isWin;
+    const h2 = history10[2]?.isWin;
+
     // 1. Phục hồi 1 kỳ trượt (1-Miss Recovery): kỳ gần nhất thắng, kỳ trước đó trượt, và trước đó nữa lại thắng
-    const is1MissRecovery = history10.length >= 2 && history10[0]?.isWin && (!history10[1]?.isWin) && (history10.length < 3 || history10[2]?.isWin);
+    const is1MissRecovery = h0 === true && h1 === false && (history10.length < 3 || h2 === true);
     
-    // 2. Cầu bền bỉ vừa lỡ nhịp 1 kỳ (đang chờ hồi): kỳ gần nhất trượt, nhưng trước đó ăn thông dài >= 2 tay
-    const isJust1Miss = history10.length >= 2 && (!history10[0]?.isWin) && history10[1]?.isWin && (history10.length < 3 || history10[2]?.isWin);
+    // 2. Cầu siêu bền vừa lỡ nhịp 1 kỳ (1-Dip Resilience): kỳ gần nhất trượt nhưng trước đó là chuỗi thông dài >= 2 tay
+    let prevStreakBeforeDip = 0;
+    if (h0 === false) {
+      for (let i = 1; i < history10.length; i++) {
+        if (history10[i].isWin) prevStreakBeforeDip++;
+        else break;
+      }
+    }
+    const is1DipResilient = h0 === false && prevStreakBeforeDip >= 2;
 
-    // Tính điểm AI Động (Dynamic AI Score)
-    let aiScore = 0;
-    // Điểm tỷ lệ thắng (0 -> 50)
-    aiScore += (winRate * 0.5);
-    // Điểm chuỗi thông (mỗi tay +12)
-    aiScore += (streak * 12);
+    // 3. Cầu gãy kép (Multi-loss): gãy liên tiếp >= 2 kỳ
+    const isMultiLoss = h0 === false && h1 === false;
 
-    // Thưởng điểm phục hồi 1-miss recovery (+45đ - Ưu tiên hàng đầu)
+    // Tính điểm AI Động Toàn Diện (Dynamic AI Score)
+    let aiScore = winRate * 1.5; // Điểm nền tảng độ bền dài hạn (0 -> 150)
+    aiScore += (streak * 18);    // Mỗi tay thông +18đ
+
+    if (streak >= 3) aiScore += 30; // Thưởng phong độ cao
+    if (streak >= 5) aiScore += 45; // Thưởng rồng lửa
+
+    // Thưởng điểm phục hồi 1-miss recovery (+90đ - Ưu tiên hàng đầu)
     if (is1MissRecovery) {
-      aiScore += 45;
+      aiScore += 90;
     }
-    // Thưởng điểm bền bỉ nếu vừa lỡ 1 nhịp sau chuỗi dài (+20đ)
-    if (isJust1Miss && winRate >= 70) {
-      aiScore += 20;
+    // Thưởng điểm bền bỉ nếu vừa lỡ 1 nhịp sau chuỗi dài (Ăn 8 gãy 1 ➔ +75đ + 8*10 = +155đ)
+    if (is1DipResilient) {
+      aiScore += 75 + (prevStreakBeforeDip * 10);
     }
-    // Thưởng streak >= 3 (+15đ)
-    if (streak >= 3) {
-      aiScore += 15;
+    // Phạt nặng nếu gãy liên tiếp >= 2 kỳ (-80đ)
+    if (isMultiLoss) {
+      aiScore -= 80;
     }
 
     let statusType = 'normal';
     let statusLabel = `Ăn ${streak} tay (${winRate}%)`;
     if (is1MissRecovery) {
       statusType = 'recovery';
-      statusLabel = `⚡ Hồi nhịp (Trượt 1 nối lại)`;
+      statusLabel = `⚡ HỒI NHỊP (Trượt 1 nối lại)`;
+    } else if (is1DipResilient) {
+      statusType = 'resilient';
+      statusLabel = `🛡️ SIÊU BỀN (Ăn ${prevStreakBeforeDip} gãy 1 ➔ Chờ Nổ Lại)`;
+    } else if (streak >= 5) {
+      statusType = 'dragon';
+      statusLabel = `🔥 RỒNG LỬA (Thông ${streak} tay)`;
     } else if (streak >= 3) {
       statusType = 'hot';
-      statusLabel = `🔥 Thông ${streak} tay (${winRate}%)`;
-    } else if (isJust1Miss) {
-      statusType = 'resilient';
-      statusLabel = `🛡️ Bền bỉ (Lỡ 1 nhịp)`;
+      statusLabel = `🔥 THÔNG ${streak} TAY`;
+    } else if (streak >= 1) {
+      statusType = 'normal';
+      statusLabel = `✅ Ăn ${streak} tay (${winRate}%)`;
+    } else {
+      statusType = 'broken';
+      statusLabel = `⚠️ Gãy nhịp (${winRate}%)`;
     }
 
-    const isRecommended = streak >= 3 || is1MissRecovery || (streak >= 2 && winRate >= 80);
+    const isRecommended = streak >= 3 || is1MissRecovery || is1DipResilient || (streak >= 2 && winRate >= 80);
 
     return {
       id: bridge.id,
@@ -495,7 +518,8 @@ export const getLoaiSoHauNhi = (rawData) => {
       winRate,
       aiScore,
       is1MissRecovery,
-      isJust1Miss,
+      is1DipResilient,
+      prevStreakBeforeDip,
       statusType,
       statusLabel,
       isRecommended,
