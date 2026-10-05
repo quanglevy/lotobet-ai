@@ -233,49 +233,6 @@ const ExecutiveDashboard = ({
     );
   };
 
-  const renderDanStreak10 = (key, label, color = '#38bdf8') => {
-    if (!historyList10 || historyList10.length === 0) return null;
-    const wins = historyList10.filter(h => h && h[key]).length;
-    const total = historyList10.length;
-    const rate = total > 0 ? Math.round((wins / total) * 100) : 0;
-
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', backgroundColor: 'rgba(15, 23, 42, 0.7)', padding: '7px 10px', borderRadius: '6px', border: '1px solid #334155' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
-          <span style={{ fontSize: '12px', color: color, fontWeight: 'bold' }}>
-            {label}:
-          </span>
-          <span style={{ fontSize: '11px', fontWeight: 'bold', color: wins >= 7 ? '#34d399' : (wins >= 5 ? '#fbbf24' : '#f87171'), backgroundColor: 'rgba(0,0,0,0.5)', padding: '1px 8px', borderRadius: '4px', border: '1px solid #475569' }}>
-            {wins}/{total} Trúng ({rate}%)
-          </span>
-        </div>
-        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center', marginTop: '2px' }}>
-          {[...historyList10].reverse().map((h, idx) => {
-            const isWin = h[key];
-            const drawNum = h.drawId ? h.drawId.slice(-3) : (idx + 1);
-            return (
-              <span 
-                key={idx}
-                title={`Kỳ ${drawNum}: ${isWin ? 'Trúng (Thắng)' : 'Trượt (Thua)'} | Về Hậu: ${h.resultHau || ''}`}
-                style={{
-                  backgroundColor: isWin ? '#065f46' : '#7f1d1d',
-                  border: isWin ? '1px solid #34d399' : '1px solid #ef4444',
-                  color: 'white',
-                  borderRadius: '3px',
-                  padding: '1px 5px',
-                  fontSize: '9.5px',
-                  fontWeight: 'bold'
-                }}
-              >
-                {drawNum}:{isWin ? '✅' : '❌'}
-              </span>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
-
   const renderDanStreak10Mini = (key) => {
     if (!historyList10 || historyList10.length === 0) return null;
     const wins = historyList10.filter(h => h && h[key]).length;
@@ -283,8 +240,10 @@ const ExecutiveDashboard = ({
     const rate = total > 0 ? Math.round((wins / total) * 100) : 0;
 
     return (
-      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center', marginTop: '3px' }}>
-        <span style={{ fontSize: '10px', color: '#94a3b8' }}>10 kỳ: <strong style={{ color: wins >= 7 ? '#34d399' : (wins >= 5 ? '#fbbf24' : '#f87171') }}>{wins}/{total} ({rate}%)</strong></span>
+      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <span style={{ fontSize: '10.5px', color: '#94a3b8', marginRight: '2px' }}>
+          10 kỳ: <strong style={{ color: wins >= 7 ? '#34d399' : (wins >= 5 ? '#fbbf24' : '#f87171') }}>{wins}/{total} ({rate}%)</strong>
+        </span>
         {[...historyList10].reverse().map((h, idx) => {
           const isWin = h[key];
           const drawNum = h.drawId ? h.drawId.slice(-3) : (idx + 1);
@@ -297,8 +256,8 @@ const ExecutiveDashboard = ({
                 border: isWin ? '1px solid #34d399' : '1px solid #ef4444',
                 color: 'white',
                 borderRadius: '3px',
-                padding: '0 4px',
-                fontSize: '9px',
+                padding: '1px 4px',
+                fontSize: '9.5px',
                 fontWeight: 'bold'
               }}
             >
@@ -859,75 +818,108 @@ const ExecutiveDashboard = ({
               </div>
 
               {/* Dàn 2 số */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ color: '#ef4444' }}>🎯</span> HỆ DÀN 2 SỐ (Bạch Thủ Bạc Nhớ)
+              <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid #334155', borderRadius: '8px', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span style={{ color: '#ef4444' }}>🎯</span> HỆ DÀN 2 SỐ (Bạch Thủ Bạc Nhớ)
+                  </div>
+                  <span style={{ fontSize: '10.5px', color: '#94a3b8' }}>Siêu nổ (1 cặp lót)</span>
                 </div>
-                <div style={{ color: '#6b7280', fontSize: '10.5px' }}>Siêu nổ (1 cặp lót)</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap' }}>{renderBalls(dan2)}</div>
-                {renderCopyButton(dan2, "Dàn 2 Số Bạch Thủ")}
-                {renderDanStreak10Mini('isD2Hit')}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px', paddingTop: '4px', borderTop: '1px dashed rgba(255,255,255,0.08)' }}>
+                  {renderCopyButton(dan2, "Dàn 2 Số Bạch Thủ")}
+                  {renderDanStreak10Mini('isD2Hit')}
+                </div>
               </div>
 
               {/* Dàn 4 số */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ color: '#eab308' }}>⚡</span> HỆ DÀN 4 SỐ (Tứ Thủ Bạc Nhớ)
+              <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid #334155', borderRadius: '8px', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span style={{ color: '#eab308' }}>⚡</span> HỆ DÀN 4 SỐ (Tứ Thủ Bạc Nhớ)
+                  </div>
+                  <span style={{ fontSize: '10.5px', color: '#94a3b8' }}>Đột phá (2 cặp lót)</span>
                 </div>
-                <div style={{ color: '#6b7280', fontSize: '10.5px' }}>Đột phá (2 cặp lót)</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap' }}>{renderBalls(dan4)}</div>
-                {renderCopyButton(dan4, "Dàn 4 Số Tứ Thủ")}
-                {renderDanStreak10Mini('isD4Hit')}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px', paddingTop: '4px', borderTop: '1px dashed rgba(255,255,255,0.08)' }}>
+                  {renderCopyButton(dan4, "Dàn 4 Số Tứ Thủ")}
+                  {renderDanStreak10Mini('isD4Hit')}
+                </div>
               </div>
 
               {/* Dàn 10 số */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ color: '#f97316' }}>🛡️</span> DÀN 10 SỐ 2D
+              <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid #334155', borderRadius: '8px', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span style={{ color: '#f97316' }}>🛡️</span> DÀN 10 SỐ 2D
+                  </div>
+                  <span style={{ fontSize: '10.5px', color: '#94a3b8' }}>Chắt lọc TOP điểm</span>
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap' }}>{renderBalls(dan10, false)}</div>
-                {renderCopyButton(dan10, "Dàn 10 Số")}
-                {renderDanStreak10Mini('isD10Hit')}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px', paddingTop: '4px', borderTop: '1px dashed rgba(255,255,255,0.08)' }}>
+                  {renderCopyButton(dan10, "Dàn 10 Số")}
+                  {renderDanStreak10Mini('isD10Hit')}
+                </div>
               </div>
 
               {/* Dàn 20 số */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ color: '#f97316' }}>🛡️</span> DÀN 20 SỐ 2D
+              <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid #334155', borderRadius: '8px', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span style={{ color: '#f97316' }}>🛡️</span> DÀN 20 SỐ 2D
+                  </div>
+                  <span style={{ fontSize: '10.5px', color: '#94a3b8' }}>Khung ổn định</span>
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap' }}>{renderBalls(dan20, true)}</div>
-                {renderCopyButton(dan20, "Dàn 20 Số")}
-                {renderDanStreak10Mini('isD20Hit')}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px', paddingTop: '4px', borderTop: '1px dashed rgba(255,255,255,0.08)' }}>
+                  {renderCopyButton(dan20, "Dàn 20 Số")}
+                  {renderDanStreak10Mini('isD20Hit')}
+                </div>
               </div>
 
               {/* Dàn 36 số */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ color: '#10b981' }}>🛡️</span> DÀN 36 SỐ 2D (ĐÁNH 6 SỐ GIỮ)
+              <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid #334155', borderRadius: '8px', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span style={{ color: '#10b981' }}>🛡️</span> DÀN 36 SỐ 2D (ĐÁNH 6 SỐ GIỮ)
+                  </div>
+                  <span style={{ fontSize: '10.5px', color: '#6ee7b7' }}>Chủ lực bạc nhớ</span>
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap' }}>{renderBalls(dan36, true)}</div>
-                {renderCopyButton(dan36, "Dàn 36 Số")}
-                {renderDanStreak10Mini('isD36Hit')}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px', paddingTop: '4px', borderTop: '1px dashed rgba(255,255,255,0.08)' }}>
+                  {renderCopyButton(dan36, "Dàn 36 Số")}
+                  {renderDanStreak10Mini('isD36Hit')}
+                </div>
               </div>
 
               {/* Dàn 50 số */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', backgroundColor: 'rgba(59, 130, 246, 0.08)', padding: '6px', borderRadius: '6px', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
-                <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ color: '#3b82f6' }}>🔥</span> DÀN 50 SỐ 2D (TỶ LỆ 50%)
+              <div style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.35)', borderRadius: '8px', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span style={{ color: '#3b82f6' }}>🔥</span> DÀN 50 SỐ 2D (TỶ LỆ 50%)
+                  </div>
+                  <span style={{ fontSize: '10.5px', color: '#93c5fd' }}>Ăn chắc mặc bền</span>
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap' }}>{renderBalls(dan50, true)}</div>
-                {renderCopyButton(dan50, "Dàn 50 Số")}
-                {renderDanStreak10Mini('isD50Hit')}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px', paddingTop: '4px', borderTop: '1px dashed rgba(59, 130, 246, 0.2)' }}>
+                  {renderCopyButton(dan50, "Dàn 50 Số")}
+                  {renderDanStreak10Mini('isD50Hit')}
+                </div>
               </div>
 
               {/* Dàn 64 số */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ color: '#8b5cf6' }}>💎</span> DÀN 64 SỐ 2D (BẤT BẠI 64%)
+              <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid #334155', borderRadius: '8px', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span style={{ color: '#8b5cf6' }}>💎</span> DÀN 64 SỐ 2D (BẤT BẠI 64%)
+                  </div>
+                  <span style={{ fontSize: '10.5px', color: '#c084fc' }}>Bao phủ tối đa</span>
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap' }}>{renderBalls(dan64, true)}</div>
-                {renderCopyButton(dan64, "Dàn 64 Số")}
-                {renderDanStreak10Mini('isD64Hit')}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px', paddingTop: '4px', borderTop: '1px dashed rgba(255,255,255,0.08)' }}>
+                  {renderCopyButton(dan64, "Dàn 64 Số")}
+                  {renderDanStreak10Mini('isD64Hit')}
+                </div>
               </div>
             </div>
 
@@ -940,83 +932,165 @@ const ExecutiveDashboard = ({
 
               {historyCheck ? (
                 <>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ color: '#ef4444' }}>🎯</span> HỆ DÀN 2 SỐ (Bạch Thủ)
+                  {/* Dàn 2 số */}
+                  <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid #334155', borderRadius: '8px', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <span style={{ color: '#ef4444' }}>🎯</span> HỆ DÀN 2 SỐ (Bạch Thủ)
+                      </div>
+                      <span style={{ 
+                        fontSize: '11px', 
+                        fontWeight: 'bold', 
+                        color: historyCheck.isD2Hit ? '#34d399' : '#f87171',
+                        backgroundColor: historyCheck.isD2Hit ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        border: historyCheck.isD2Hit ? '1px solid #059669' : '1px solid #ef4444'
+                      }}>
+                        {historyCheck.isD2Hit ? '✅ TRÚNG' : '❌ TRƯỢT'}
+                      </span>
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap' }}>
                       {renderBalls(historyCheck.pD2, false, historyCheck.resultHau, historyCheck.resultTien)}
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ color: '#eab308' }}>⚡</span> HỆ DÀN 4 SỐ (Tứ Thủ)
+                  {/* Dàn 4 số */}
+                  <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid #334155', borderRadius: '8px', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <span style={{ color: '#eab308' }}>⚡</span> HỆ DÀN 4 SỐ (Tứ Thủ)
+                      </div>
+                      <span style={{ 
+                        fontSize: '11px', 
+                        fontWeight: 'bold', 
+                        color: historyCheck.isD4Hit ? '#34d399' : '#f87171',
+                        backgroundColor: historyCheck.isD4Hit ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        border: historyCheck.isD4Hit ? '1px solid #059669' : '1px solid #ef4444'
+                      }}>
+                        {historyCheck.isD4Hit ? '✅ TRÚNG' : '❌ TRƯỢT'}
+                      </span>
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap' }}>
                       {renderBalls(historyCheck.pD4, false, historyCheck.resultHau, historyCheck.resultTien)}
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ color: '#f97316' }}>🛡️</span> DÀN 10 SỐ 2D
+                  {/* Dàn 10 số */}
+                  <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid #334155', borderRadius: '8px', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <span style={{ color: '#f97316' }}>🛡️</span> DÀN 10 SỐ 2D
+                      </div>
+                      <span style={{ 
+                        fontSize: '11px', 
+                        fontWeight: 'bold', 
+                        color: historyCheck.isD10Hit ? '#34d399' : '#f87171',
+                        backgroundColor: historyCheck.isD10Hit ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        border: historyCheck.isD10Hit ? '1px solid #059669' : '1px solid #ef4444'
+                      }}>
+                        {historyCheck.isD10Hit ? '✅ TRÚNG' : '❌ TRƯỢT'}
+                      </span>
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap' }}>
                       {renderBalls(historyCheck.pD10, false, historyCheck.resultHau, historyCheck.resultTien)}
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ color: '#f97316' }}>🛡️</span> DÀN 20 SỐ 2D
+                  {/* Dàn 20 số */}
+                  <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid #334155', borderRadius: '8px', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <span style={{ color: '#f97316' }}>🛡️</span> DÀN 20 SỐ 2D
+                      </div>
+                      <span style={{ 
+                        fontSize: '11px', 
+                        fontWeight: 'bold', 
+                        color: historyCheck.isD20Hit ? '#34d399' : '#f87171',
+                        backgroundColor: historyCheck.isD20Hit ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        border: historyCheck.isD20Hit ? '1px solid #059669' : '1px solid #ef4444'
+                      }}>
+                        {historyCheck.isD20Hit ? '✅ TRÚNG' : '❌ TRƯỢT'}
+                      </span>
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap' }}>
                       {renderBalls(historyCheck.pD20, true, historyCheck.resultHau, historyCheck.resultTien)}
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ color: '#10b981' }}>🛡️</span> DÀN 36 SỐ 2D
+                  {/* Dàn 36 số */}
+                  <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid #334155', borderRadius: '8px', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <span style={{ color: '#10b981' }}>🛡️</span> DÀN 36 SỐ 2D
+                      </div>
+                      <span style={{ 
+                        fontSize: '11px', 
+                        fontWeight: 'bold', 
+                        color: historyCheck.isD36Hit ? '#34d399' : '#f87171',
+                        backgroundColor: historyCheck.isD36Hit ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        border: historyCheck.isD36Hit ? '1px solid #059669' : '1px solid #ef4444'
+                      }}>
+                        {historyCheck.isD36Hit ? '✅ TRÚNG' : '❌ TRƯỢT'}
+                      </span>
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap' }}>
                       {renderBalls(historyCheck.pD36, true, historyCheck.resultHau, historyCheck.resultTien)}
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', backgroundColor: 'rgba(59, 130, 246, 0.08)', padding: '6px', borderRadius: '4px' }}>
-                    <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ color: '#3b82f6' }}>🔥</span> DÀN 50 SỐ 2D
+                  {/* Dàn 50 số */}
+                  <div style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.35)', borderRadius: '8px', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <span style={{ color: '#3b82f6' }}>🔥</span> DÀN 50 SỐ 2D
+                      </div>
+                      <span style={{ 
+                        fontSize: '11px', 
+                        fontWeight: 'bold', 
+                        color: historyCheck.isD50Hit ? '#34d399' : '#f87171',
+                        backgroundColor: historyCheck.isD50Hit ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        border: historyCheck.isD50Hit ? '1px solid #059669' : '1px solid #ef4444'
+                      }}>
+                        {historyCheck.isD50Hit ? '✅ TRÚNG' : '❌ TRƯỢT'}
+                      </span>
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap' }}>
                       {renderBalls(historyCheck.pD50, true, historyCheck.resultHau, historyCheck.resultTien)}
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ color: '#8b5cf6' }}>💎</span> DÀN 64 SỐ 2D
+                  {/* Dàn 64 số */}
+                  <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', border: '1px solid #334155', borderRadius: '8px', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <span style={{ color: '#8b5cf6' }}>💎</span> DÀN 64 SỐ 2D
+                      </div>
+                      <span style={{ 
+                        fontSize: '11px', 
+                        fontWeight: 'bold', 
+                        color: historyCheck.isD64Hit ? '#34d399' : '#f87171',
+                        backgroundColor: historyCheck.isD64Hit ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        border: historyCheck.isD64Hit ? '1px solid #059669' : '1px solid #ef4444'
+                      }}>
+                        {historyCheck.isD64Hit ? '✅ TRÚNG' : '❌ TRƯỢT'}
+                      </span>
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap' }}>
                       {renderBalls(historyCheck.pD64, true, historyCheck.resultHau, historyCheck.resultTien)}
                     </div>
-                  </div>
-
-                  {/* BẢNG TỔNG HỢP THỐNG KÊ 10 KỲ CÁC HỆ DÀN SỐ 2D (HẬU NHỊ) */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '10px', borderTop: '1px solid #334155', paddingTop: '10px' }}>
-                    <div style={{ color: '#38bdf8', fontWeight: 'bold', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '4px', marginBottom: '2px' }}>
-                      <span>📊 THỐNG KÊ 10 KỲ CÁC HỆ DÀN SỐ (HẬU NHỊ):</span>
-                      <span style={{ fontSize: '11px', color: '#9ca3af' }}>Tỷ lệ trúng thực tế</span>
-                    </div>
-
-                    {renderDanStreak10('isD10Hit', '🛡️ Dàn 10 Số 2D', '#f97316')}
-                    {renderDanStreak10('isD20Hit', '🛡️ Dàn 20 Số 2D', '#f97316')}
-                    {renderDanStreak10('isD36Hit', '🛡️ Dàn 36 Số 2D (Chủ Lực)', '#10b981')}
-                    {renderDanStreak10('isD50Hit', '🔥 Dàn 50 Số 2D (Tỷ lệ 50%)', '#38bdf8')}
-                    {renderDanStreak10('isD64Hit', '💎 Dàn 64 Số 2D (Bao 64%)', '#c084fc')}
-                    {renderDanStreak10('isD4Hit', '⚡ Dàn 4 Số (Tứ Thủ)', '#eab308')}
-                    {renderDanStreak10('isD2Hit', '🎯 Dàn 2 Số (Bạch Thủ)', '#ef4444')}
                   </div>
                 </>
               ) : (
@@ -1191,13 +1265,21 @@ function App() {
           isLoai4Hit = g6.includes(actChuc) && g6.includes(actDv);
         }
 
-        isD2Hit = (pD2 || []).includes(actHau);
-        isD4Hit = (pD4 || []).includes(actHau);
-        isD10Hit = (pD10 || []).includes(actHau);
-        isD20Hit = (pD20 || []).includes(actHau);
-        isD36Hit = (pD36 || []).includes(actHau);
-        isD50Hit = (pD50 || []).includes(actHau);
-        isD64Hit = (pD64 || []).includes(actHau);
+        const checkDanHit = (dan, num) => {
+          if (!dan || !Array.isArray(dan) || !num) return false;
+          return dan.some(item => {
+            const str = typeof item === 'string' ? item : (item?.number || '');
+            return str === num;
+          });
+        };
+
+        isD2Hit = checkDanHit(pD2, actHau);
+        isD4Hit = checkDanHit(pD4, actHau);
+        isD10Hit = checkDanHit(pD10, actHau);
+        isD20Hit = checkDanHit(pD20, actHau);
+        isD36Hit = checkDanHit(pD36, actHau);
+        isD50Hit = checkDanHit(pD50, actHau);
+        isD64Hit = checkDanHit(pD64, actHau);
       }
     }
 
