@@ -233,6 +233,83 @@ const ExecutiveDashboard = ({
     );
   };
 
+  const renderDanStreak10 = (key, label, color = '#38bdf8') => {
+    if (!historyList10 || historyList10.length === 0) return null;
+    const wins = historyList10.filter(h => h && h[key]).length;
+    const total = historyList10.length;
+    const rate = total > 0 ? Math.round((wins / total) * 100) : 0;
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', backgroundColor: 'rgba(15, 23, 42, 0.7)', padding: '7px 10px', borderRadius: '6px', border: '1px solid #334155' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+          <span style={{ fontSize: '12px', color: color, fontWeight: 'bold' }}>
+            {label}:
+          </span>
+          <span style={{ fontSize: '11px', fontWeight: 'bold', color: wins >= 7 ? '#34d399' : (wins >= 5 ? '#fbbf24' : '#f87171'), backgroundColor: 'rgba(0,0,0,0.5)', padding: '1px 8px', borderRadius: '4px', border: '1px solid #475569' }}>
+            {wins}/{total} Trúng ({rate}%)
+          </span>
+        </div>
+        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center', marginTop: '2px' }}>
+          {[...historyList10].reverse().map((h, idx) => {
+            const isWin = h[key];
+            const drawNum = h.drawId ? h.drawId.slice(-3) : (idx + 1);
+            return (
+              <span 
+                key={idx}
+                title={`Kỳ ${drawNum}: ${isWin ? 'Trúng (Thắng)' : 'Trượt (Thua)'} | Về Hậu: ${h.resultHau || ''}`}
+                style={{
+                  backgroundColor: isWin ? '#065f46' : '#7f1d1d',
+                  border: isWin ? '1px solid #34d399' : '1px solid #ef4444',
+                  color: 'white',
+                  borderRadius: '3px',
+                  padding: '1px 5px',
+                  fontSize: '9.5px',
+                  fontWeight: 'bold'
+                }}
+              >
+                {drawNum}:{isWin ? '✅' : '❌'}
+              </span>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderDanStreak10Mini = (key) => {
+    if (!historyList10 || historyList10.length === 0) return null;
+    const wins = historyList10.filter(h => h && h[key]).length;
+    const total = historyList10.length;
+    const rate = total > 0 ? Math.round((wins / total) * 100) : 0;
+
+    return (
+      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center', marginTop: '3px' }}>
+        <span style={{ fontSize: '10px', color: '#94a3b8' }}>10 kỳ: <strong style={{ color: wins >= 7 ? '#34d399' : (wins >= 5 ? '#fbbf24' : '#f87171') }}>{wins}/{total} ({rate}%)</strong></span>
+        {[...historyList10].reverse().map((h, idx) => {
+          const isWin = h[key];
+          const drawNum = h.drawId ? h.drawId.slice(-3) : (idx + 1);
+          return (
+            <span 
+              key={idx}
+              title={`Kỳ ${drawNum}: ${isWin ? 'Trúng (Thắng)' : 'Trượt (Thua)'} | Về Hậu: ${h.resultHau || ''}`}
+              style={{
+                backgroundColor: isWin ? '#065f46' : '#7f1d1d',
+                border: isWin ? '1px solid #34d399' : '1px solid #ef4444',
+                color: 'white',
+                borderRadius: '3px',
+                padding: '0 4px',
+                fontSize: '9px',
+                fontWeight: 'bold'
+              }}
+            >
+              {drawNum}:{isWin ? '✅' : '❌'}
+            </span>
+          );
+        })}
+      </div>
+    );
+  };
+
   const renderTXCLHit = (prediction, actual) => {
     const isHit = prediction === actual;
     return (
@@ -789,6 +866,7 @@ const ExecutiveDashboard = ({
                 <div style={{ color: '#6b7280', fontSize: '10.5px' }}>Siêu nổ (1 cặp lót)</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap' }}>{renderBalls(dan2)}</div>
                 {renderCopyButton(dan2, "Dàn 2 Số Bạch Thủ")}
+                {renderDanStreak10Mini('isD2Hit')}
               </div>
 
               {/* Dàn 4 số */}
@@ -799,6 +877,7 @@ const ExecutiveDashboard = ({
                 <div style={{ color: '#6b7280', fontSize: '10.5px' }}>Đột phá (2 cặp lót)</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap' }}>{renderBalls(dan4)}</div>
                 {renderCopyButton(dan4, "Dàn 4 Số Tứ Thủ")}
+                {renderDanStreak10Mini('isD4Hit')}
               </div>
 
               {/* Dàn 10 số */}
@@ -808,6 +887,7 @@ const ExecutiveDashboard = ({
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap' }}>{renderBalls(dan10, false)}</div>
                 {renderCopyButton(dan10, "Dàn 10 Số")}
+                {renderDanStreak10Mini('isD10Hit')}
               </div>
 
               {/* Dàn 20 số */}
@@ -817,6 +897,7 @@ const ExecutiveDashboard = ({
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap' }}>{renderBalls(dan20, true)}</div>
                 {renderCopyButton(dan20, "Dàn 20 Số")}
+                {renderDanStreak10Mini('isD20Hit')}
               </div>
 
               {/* Dàn 36 số */}
@@ -826,6 +907,7 @@ const ExecutiveDashboard = ({
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap' }}>{renderBalls(dan36, true)}</div>
                 {renderCopyButton(dan36, "Dàn 36 Số")}
+                {renderDanStreak10Mini('isD36Hit')}
               </div>
 
               {/* Dàn 50 số */}
@@ -835,6 +917,7 @@ const ExecutiveDashboard = ({
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap' }}>{renderBalls(dan50, true)}</div>
                 {renderCopyButton(dan50, "Dàn 50 Số")}
+                {renderDanStreak10Mini('isD50Hit')}
               </div>
 
               {/* Dàn 64 số */}
@@ -844,6 +927,7 @@ const ExecutiveDashboard = ({
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap' }}>{renderBalls(dan64, true)}</div>
                 {renderCopyButton(dan64, "Dàn 64 Số")}
+                {renderDanStreak10Mini('isD64Hit')}
               </div>
             </div>
 
@@ -919,20 +1003,21 @@ const ExecutiveDashboard = ({
                     </div>
                   </div>
 
-                  {historyCheck.actualTXCL && historyCheck.pTXCL && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '10px', borderTop: '1px solid #334155', paddingTop: '8px' }}>
-                      <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{ color: '#ec4899' }}>🎲</span> TÀI XỈU - CHẴN LẺ (ĐỐI CHIẾU)
-                      </div>
-                      <div style={{ color: '#9ca3af', fontSize: '0.8rem' }}>
-                        Tổng 5 số: <span style={{ color: 'white', fontWeight: 'bold' }}>{historyCheck.actualTXCL.sum}</span> ({historyCheck.actualTXCL.tx} - {historyCheck.actualTXCL.cl})
-                      </div>
-                      <div style={{ display: 'flex', gap: '0.8rem', marginTop: '0.2rem' }}>
-                        {renderTXCLHit(historyCheck.pTXCL.tx, historyCheck.actualTXCL.tx)}
-                        {renderTXCLHit(historyCheck.pTXCL.cl, historyCheck.actualTXCL.cl)}
-                      </div>
+                  {/* BẢNG TỔNG HỢP THỐNG KÊ 10 KỲ CÁC HỆ DÀN SỐ 2D (HẬU NHỊ) */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '10px', borderTop: '1px solid #334155', paddingTop: '10px' }}>
+                    <div style={{ color: '#38bdf8', fontWeight: 'bold', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '4px', marginBottom: '2px' }}>
+                      <span>📊 THỐNG KÊ 10 KỲ CÁC HỆ DÀN SỐ (HẬU NHỊ):</span>
+                      <span style={{ fontSize: '11px', color: '#9ca3af' }}>Tỷ lệ trúng thực tế</span>
                     </div>
-                  )}
+
+                    {renderDanStreak10('isD10Hit', '🛡️ Dàn 10 Số 2D', '#f97316')}
+                    {renderDanStreak10('isD20Hit', '🛡️ Dàn 20 Số 2D', '#f97316')}
+                    {renderDanStreak10('isD36Hit', '🛡️ Dàn 36 Số 2D (Chủ Lực)', '#10b981')}
+                    {renderDanStreak10('isD50Hit', '🔥 Dàn 50 Số 2D (Tỷ lệ 50%)', '#38bdf8')}
+                    {renderDanStreak10('isD64Hit', '💎 Dàn 64 Số 2D (Bao 64%)', '#c084fc')}
+                    {renderDanStreak10('isD4Hit', '⚡ Dàn 4 Số (Tứ Thủ)', '#eab308')}
+                    {renderDanStreak10('isD2Hit', '🎯 Dàn 2 Số (Bạch Thủ)', '#ef4444')}
+                  </div>
                 </>
               ) : (
                 <div style={{ color: '#6b7280', fontStyle: 'italic', padding: '1rem' }}>
@@ -1085,6 +1170,13 @@ function App() {
     let isLoai2Hit = false;
     let isLoai3Hit = false;
     let isLoai4Hit = false;
+    let isD2Hit = false;
+    let isD4Hit = false;
+    let isD10Hit = false;
+    let isD20Hit = false;
+    let isD36Hit = false;
+    let isD50Hit = false;
+    let isD64Hit = false;
 
     if (actualNextDraw) {
       const actHau = actualNextDraw.Result ? actualNextDraw.Result.slice(3, 5) : '';
@@ -1098,6 +1190,14 @@ function App() {
           isLoai3Hit = g7.includes(actChuc) && g7.includes(actDv);
           isLoai4Hit = g6.includes(actChuc) && g6.includes(actDv);
         }
+
+        isD2Hit = (pD2 || []).includes(actHau);
+        isD4Hit = (pD4 || []).includes(actHau);
+        isD10Hit = (pD10 || []).includes(actHau);
+        isD20Hit = (pD20 || []).includes(actHau);
+        isD36Hit = (pD36 || []).includes(actHau);
+        isD50Hit = (pD50 || []).includes(actHau);
+        isD64Hit = (pD64 || []).includes(actHau);
       }
     }
 
@@ -1110,6 +1210,13 @@ function App() {
       isLoai2Hit,
       isLoai3Hit,
       isLoai4Hit,
+      isD2Hit,
+      isD4Hit,
+      isD10Hit,
+      isD20Hit,
+      isD36Hit,
+      isD50Hit,
+      isD64Hit,
       actualTXCL: actualNextDraw ? checkTXCL(actualNextDraw.Result) : null,
       fullResult: actualNextDraw ? actualNextDraw.Result : null,
       resultTien: actualNextDraw ? actualNextDraw.Result.slice(0, 2) : null,
