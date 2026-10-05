@@ -361,12 +361,12 @@ const ExecutiveDashboard = ({
             {renderStreak10()}
 
             {/* ========================================================================= */}
-            {/* PHẦN 2: 🟢 BẢNG XẾP HẠNG 9 CẦU BẮT SỐ ĐỘNG (TOP 1 ➔ TOP 9) */}
+            {/* PHẦN 2: 🟢 BẢNG XẾP HẠNG 10 CẦU BẮT SỐ ĐỘNG (TOP 1 ➔ TOP 10) */}
             {/* ========================================================================= */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '6px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#064e3b', padding: '8px 12px', borderRadius: '8px', border: '1px solid #059669', flexWrap: 'wrap', gap: '4px' }}>
                 <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#6ee7b7', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  🟢 BẢNG XẾP HẠNG 9 CẦU BẮT SỐ ĐỘNG (TOP 1 ➔ TOP 9)
+                  🟢 BẢNG XẾP HẠNG 10 CẦU BẮT SỐ ĐỘNG (TOP 1 ➔ TOP 10)
                 </span>
                 <span style={{ fontSize: '11px', color: '#a7f3d0' }}>AI Tự Động Thích Ứng Theo Kỳ</span>
               </div>
@@ -646,17 +646,15 @@ const ExecutiveDashboard = ({
                       </div>
                     </div>
                   </div>
-                  {/* Thống kê 10 kỳ gần nhất */}
-                  {renderStreak10()}
                 </div>
               )}
 
-              {/* Đối chiếu 9 Cầu Bắt Số Kỳ Vừa Xổ */}
+              {/* Đối chiếu 10 Cầu Bắt Số Kỳ Vừa Xổ */}
               {historyCheck.pLoaiSo?.bridgeStats && historyCheck.pLoaiSo.bridgeStats.length > 0 && (
                 <div style={{ backgroundColor: '#0f172a', padding: '12px', borderRadius: '10px', border: '1px solid #10b981', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
                     <span style={{ fontWeight: 'bold', color: '#34d399', fontSize: '0.9rem' }}>
-                      🟢 ĐỐI CHIẾU 9 CẦU KỲ VỪA XỔ:
+                      🟢 ĐỐI CHIẾU 10 CẦU KỲ VỪA XỔ:
                     </span>
                     <span style={{ fontSize: '11px', color: '#9ca3af' }}>Về Hậu Nhị: <strong style={{ color: '#facc15' }}>{historyCheck.resultHau}</strong></span>
                   </div>

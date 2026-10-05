@@ -233,7 +233,7 @@ export const predictTXCL = (data) => {
 };
 
 // ============================================================================
-// HỆ THỐNG 9 CẦU BẮT SỐ LOẠI HẬU NHỊ & THUẬT TOÁN XẾP HẠNG ĐỘNG AI
+// HỆ THỐNG 10 CẦU BẮT SỐ LOẠI HẬU NHỊ & THUẬT TOÁN XẾP HẠNG ĐỘNG AI
 // ============================================================================
 
 export const CORE_BRIDGES = [
@@ -321,14 +321,14 @@ export const CORE_BRIDGES = [
   },
   {
     id: 'cau_7',
-    name: 'Cầu 7 (Tổng Chục Ngàn + Trăm + 1)',
-    shortName: 'Cầu 7 (Vạn+Trăm+1)',
-    calc: (res) => ((parseInt(res[0]) + parseInt(res[2]) + 1) % 10).toString(),
+    name: 'Cầu 7 (Tổng Chục Ngàn + ĐV + 1)',
+    shortName: 'Cầu 7 (Vạn+ĐV+1)',
+    calc: (res) => ((parseInt(res[0]) + parseInt(res[4]) + 1) % 10).toString(),
     calcFormula: (res) => {
-      const sum = parseInt(res[0]) + parseInt(res[2]) + 1;
+      const sum = parseInt(res[0]) + parseInt(res[4]) + 1;
       const digit = (sum % 10).toString();
       return {
-        formulaText: `[ChụcNgàn(${res[0]}) + Trăm(${res[2]})] + 1 = ${sum} ➔ Loại ${digit}`,
+        formulaText: `[ChụcNgàn(${res[0]}) + ĐV(${res[4]})] + 1 = ${sum} ➔ Loại ${digit}`,
         digit
       };
     }
@@ -357,6 +357,20 @@ export const CORE_BRIDGES = [
       const digit = (((raw % 10) + 10) % 10).toString();
       return {
         formulaText: `[ĐV(${res[4]}) x 2] - 1 = ${raw} ➔ Loại ${digit}`,
+        digit
+      };
+    }
+  },
+  {
+    id: 'cau_10',
+    name: 'Cầu 10 (Tổng Chục Ngàn + Trăm + 1)',
+    shortName: 'Cầu 10 (Vạn+Trăm+1)',
+    calc: (res) => ((parseInt(res[0]) + parseInt(res[2]) + 1) % 10).toString(),
+    calcFormula: (res) => {
+      const sum = parseInt(res[0]) + parseInt(res[2]) + 1;
+      const digit = (sum % 10).toString();
+      return {
+        formulaText: `[ChụcNgàn(${res[0]}) + Trăm(${res[2]})] + 1 = ${sum} ➔ Loại ${digit}`,
         digit
       };
     }
@@ -633,7 +647,7 @@ export const getLoaiSoHauNhi = (rawData) => {
 
   const recommendedBridges = rankedBridges.filter(b => b.isRecommended);
 
-  let activeBridgeName = 'Cầu Bắt Chạm Loại Động (9 Cầu AI)';
+  let activeBridgeName = 'Cầu Bắt Chạm Loại Động (10 Cầu AI)';
   if (rankedBridges.length > 0) {
     const top1 = rankedBridges[0];
     activeBridgeName = `⭐ ${top1.rankBadge}: ${top1.shortName} (${top1.statusLabel})`;
