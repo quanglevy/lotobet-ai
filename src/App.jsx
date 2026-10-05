@@ -647,8 +647,8 @@ const ExecutiveDashboard = ({
                     }}
                   >
                     {/* Hàng 1: Badge + Tên cầu + Tag trạng thái | Số Loại */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, flexWrap: 'wrap' }}>
                         <span style={{ 
                           backgroundColor: isTop1 ? '#ca8a04' : (isTop2 ? '#0284c7' : (isTop3 ? '#c2410c' : (isTop4 ? '#059669' : '#334155'))), 
                           color: isTop1 ? 'black' : 'white', 
@@ -656,6 +656,7 @@ const ExecutiveDashboard = ({
                           fontSize: '11px', 
                           padding: '2px 7px', 
                           borderRadius: '5px',
+                          flexShrink: 0,
                           boxShadow: isTop ? '0 1px 4px rgba(0,0,0,0.4)' : 'none'
                         }}>
                           {b.rankBadge}
@@ -666,25 +667,25 @@ const ExecutiveDashboard = ({
                         </span>
 
                         {b.is1MissRecovery && (
-                          <span style={{ backgroundColor: '#0284c7', color: 'white', fontWeight: '900', fontSize: '9.5px', padding: '1px 6px', borderRadius: '9999px', boxShadow: '0 0 6px rgba(56, 189, 248, 0.8)' }}>
-                            ⚡ VỪA HỒI NHỊP (TRƯỢT 1 NỐI LẠI)
+                          <span style={{ backgroundColor: '#0284c7', color: 'white', fontWeight: '900', fontSize: '9.5px', padding: '1px 6px', borderRadius: '9999px', boxShadow: '0 0 6px rgba(56, 189, 248, 0.8)', flexShrink: 0 }}>
+                            ⚡ HỒI NHỊP
                           </span>
                         )}
                         {!b.is1MissRecovery && b.streak >= 3 && (
-                          <span style={{ backgroundColor: '#10b981', color: '#022c22', fontWeight: '900', fontSize: '9.5px', padding: '1px 6px', borderRadius: '9999px', boxShadow: '0 0 6px rgba(16, 185, 129, 0.8)' }}>
+                          <span style={{ backgroundColor: '#10b981', color: '#022c22', fontWeight: '900', fontSize: '9.5px', padding: '1px 6px', borderRadius: '9999px', boxShadow: '0 0 6px rgba(16, 185, 129, 0.8)', flexShrink: 0 }}>
                             🔥 THÔNG {b.streak} TAY
                           </span>
                         )}
                         {!b.is1MissRecovery && b.is1DipResilient && (
-                          <span style={{ backgroundColor: '#d97706', color: 'white', fontWeight: 'bold', fontSize: '9.5px', padding: '1px 5px', borderRadius: '4px' }}>
+                          <span style={{ backgroundColor: '#d97706', color: 'white', fontWeight: 'bold', fontSize: '9.5px', padding: '1px 5px', borderRadius: '4px', flexShrink: 0 }}>
                             🛡️ SIÊU BỀN
                           </span>
                         )}
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0, marginLeft: 'auto' }}>
                         <span style={{ color: '#fbbf24', fontWeight: 'bold', fontSize: '11.5px' }}>LOẠI:</span>
-                        <span style={{ backgroundColor: '#1e293b', color: '#f8fafc', fontWeight: '900', fontSize: '1.25rem', padding: '1px 9px', borderRadius: '6px', border: '1px solid #475569', boxShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+                        <span style={{ backgroundColor: '#1e293b', color: '#f8fafc', fontWeight: '900', fontSize: '1.25rem', padding: '1px 9px', borderRadius: '6px', border: '1px solid #475569', boxShadow: '0 2px 4px rgba(0,0,0,0.5)', lineHeight: '1.2' }}>
                           {b.predDigit}
                         </span>
                       </div>
@@ -738,15 +739,16 @@ const ExecutiveDashboard = ({
                     }}
                   >
                     {/* Hàng 1: Tên cầu, TOP badge, Số loại & Kết quả kỳ vừa xổ */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, flexWrap: 'wrap' }}>
                         <span style={{ 
                           backgroundColor: isTop1 ? '#ca8a04' : (isTop2 ? '#0284c7' : (isTop3 ? '#c2410c' : (isTop4 ? '#059669' : '#334155'))), 
                           color: isTop1 ? 'black' : 'white', 
                           fontSize: '10.5px', 
                           fontWeight: 'bold', 
                           padding: '2px 7px', 
-                          borderRadius: '4px' 
+                          borderRadius: '4px',
+                          flexShrink: 0
                         }}>
                           {b.rankBadge}
                         </span>
@@ -754,7 +756,7 @@ const ExecutiveDashboard = ({
                       </div>
                       
                       {prevBridge ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0, marginLeft: 'auto' }}>
                           <span style={{ fontSize: '12px', color: '#cbd5e1', fontWeight: 'bold' }}>Loại:</span>
                           <span style={{ 
                             backgroundColor: '#1e293b', 
@@ -785,7 +787,7 @@ const ExecutiveDashboard = ({
                           </span>
                         </div>
                       ) : (
-                        <span style={{ fontSize: '10.5px', color: '#64748b', fontStyle: 'italic' }}>Chờ đối chiếu...</span>
+                        <span style={{ fontSize: '10.5px', color: '#64748b', fontStyle: 'italic', flexShrink: 0 }}>Chờ đối chiếu...</span>
                       )}
                     </div>
 
