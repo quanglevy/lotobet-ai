@@ -755,14 +755,30 @@ const ExecutiveDashboard = ({
                       
                       {prevBridge ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span style={{ fontSize: '11px', color: '#cbd5e1' }}>Cắt: <strong style={{ color: '#facc15' }}>[{prevBridge.predDigit}]</strong></span>
+                          <span style={{ fontSize: '12px', color: '#cbd5e1', fontWeight: 'bold' }}>Cắt:</span>
+                          <span style={{ 
+                            backgroundColor: '#1e293b', 
+                            color: '#facc15', 
+                            fontWeight: '900', 
+                            fontSize: '1.25rem', 
+                            padding: '1px 9px', 
+                            borderRadius: '6px', 
+                            border: '1px solid #eab308',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.5)',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            lineHeight: '1.2'
+                          }}>
+                            {prevBridge.predDigit}
+                          </span>
                           <span style={{ 
                             fontSize: '11px', 
                             fontWeight: 'bold', 
                             color: isWinPrev ? '#34d399' : '#f87171',
                             backgroundColor: isWinPrev ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-                            padding: '2px 7px',
-                            borderRadius: '4px',
+                            padding: '3px 8px',
+                            borderRadius: '5px',
                             border: isWinPrev ? '1px solid #059669' : '1px solid #ef4444'
                           }}>
                             {isWinPrev ? '✅ THẮNG' : '❌ THUA'}
