@@ -742,9 +742,15 @@ export const getLoaiSoHauNhi = (rawData) => {
   const giu6 = allDigits.filter(d => !loai4.includes(d)).sort((a, b) => a - b);
   const giu7 = allDigits.filter(d => !loai3.includes(d)).sort((a, b) => a - b);
 
-  // Sinh dàn 49 số & 36 số (đánh số giữ lại)
+  // Sinh dàn 49 số & 50 số & 36 số (đánh số giữ lại)
   const dan49 = [];
   for (const d1 of giu7) for (const d2 of giu7) dan49.push(d1 + d2);
+
+  const dan50 = [...dan49];
+  const candidateExtra = allDigits.find(d => !giu7.includes(d));
+  if (candidateExtra && dan50.length === 49) {
+    dan50.push(candidateExtra + candidateExtra);
+  }
 
   const dan36 = [];
   for (const d1 of giu6) for (const d2 of giu6) dan36.push(d1 + d2);
@@ -809,7 +815,9 @@ export const getLoaiSoHauNhi = (rawData) => {
     giu7,
     loai4,
     giu6,
+    giu8,
     dan64,
+    dan50,
     dan49,
     dan36,
     dan9,
@@ -875,153 +883,7 @@ export const getBacNhoAnalysis = (rawData) => {
   const donVi = lastDraw[4];
   const traTram = BO_TRA_NHAU[tram] || tram;
   const traDonVi = BO_TRA_NHAU[donVi] || donVi;
-  addTouches([traTram, traDonVi], 30, `Bộ Số TrẢ Nhau Kubet: Trăm ${tram} trả ${traTram}, Đơn vị ${donVi} trả ${traDonVi}`);
-
-  // 2. BÍ KÍP BẮT 1 CHẠM (7 Quy Luật Bạc Nhớ)
-  const sortedDraw = lastDraw.split('').map(Number).sort((a, b) => a - b);
-  let isStraight = true;
-  for (let i = 0; i < 4; i++) {
-    if (sortedDraw[i+1] - sortedDraw[i] !== 1) isStraight = false;
-  }
-  if (isStraight) {
-    const tamSanh = sortedDraw[2].toString();
-    addTouches([tamSanh], 35, `Sảnh liên tiếp -> Chạm Tâm Sảnh ${tamSanh}`);
-  } else {
-    const counts = {};
-    for (const c of lastDraw) counts[c] = (counts[c] || 0) + 1;
-    if (Object.keys(counts).length === 5) {
-      addTouches([lastDraw[2], lastDraw[4]], 20, `Số Rời -> Chạm Tâm ${lastDraw[2]} & Đơn vị ${lastDraw[4]}`);
-    }
-  }
-
-  // Tứ Quý -> Số đơn + Bóng dương
-  const countsT = {};
-  for (const c of lastDraw) countsT[c] = (countsT[c] || 0) + 1;
-  for (const [k, v] of Object.entries(countsT)) {
-    if (v === 4) {
-      const singleDigit = Object.keys(countsT).find(d => countsT[d] === 1);
-      if (singleDigit) {
-        const bd = getBongDuong(singleDigit);
-        addTouches([singleDigit, bd], 40, `Tứ quý kẹp ${singleDigit} -> Chạm ${singleDigit} & ${bd}`);
-      }
-    }
-  }
-
-  // Kép 77 -> Chạm 9
-  if (countsT['7'] >= 2) addTouches(['9'], 35, 'Xuất hiện Kép 77 -> Chạm 9');
-  // Kép 88 -> Chạm 7
-  if (countsT['8'] >= 2) addTouches(['7'], 35, 'Xuất hiện Kép 88 -> Chạm 7');
-  // 01 hoặc 10 -> Nuôi Chạm 7
-  if (lastTien === '01' || lastTien === '10' || lastHau === '01' || lastHau === '10') {
-    addTouches(['7'], 35, 'Tiền/Hậu có 01/10 -> Nuôi Chạm 7');
-  }
-
-  // Tâm càng bệt 2 kỳ liên tiếp
-  if (ascData.length >= 2) {
-    const prevDraw = ascData[ascData.length - 2].Result;
-    if (prevDraw[2] === lastDraw[2]) {
-      const bd = getBongDuong(lastDraw[2]);
-      addTouches([lastDraw[2], bd], 35, `Tâm Càng bệt ${lastDraw[2]} 2 kỳ -> Chạm ${lastDraw[2]} & ${bd}`);
-    }
-  }
-
-  // Chạm Tiền/Hậu bệt 2-3 kỳ liên tiếp
-  if (ascData.length >= 2) {
-    const prevDraw = ascData[ascData.length - 2].Result;
-    const pTien = prevDraw.substring(0, 2);
-    const pHau = prevDraw.substring(3, 5);
-    const checkBet = (c) => (pTien.includes(c) || pHau.includes(c)) && (lastTien.includes(c) || lastHau.includes(c));
-    for (let i = 0; i < 10; i++) {
-      const digit = i.toString();
-      if (checkBet(digit)) {
-        const bd = getBongDuong(digit);
-        addTouches([digit, bd], 25, `Chạm ${digit} bệt Tiền/Hậu -> Đánh Chạm ${digit} & ${bd}`);
-      }
-    }
-  }
-
-  // 999 kẹp 4/5 -> Chạm 0
-  if (countsT['9'] === 3 && (countsT['4'] >= 1 || countsT['5'] >= 1)) {
-    addTouches(['0'], 40, 'Thế 999 kẹp 4/5 -> Ép Chạm 0');
-  }
-
-  // 3. BẮT BỘ & BẠCH THỦ (11 Quy luật Phần C)
-  const isTargetMatch = (pairs) => pairs.some(p => lastTien === p || lastHau === p);
-  const isBoMatch = (boKey) => {
-    const list = BO_SO_MAP[boKey] || [];
-    return list.includes(lastTien) || list.includes(lastHau);
-  };
-
-  if (isTargetMatch(['05', '50'])) {
-    addBo(BO_SO_MAP['23'], 'Bạc nhớ 05/50 -> Nuôi Bộ 23');
-    addVip(['78', '87'], 'Bạch thủ lót 78-87');
-  }
-
-  if (isTargetMatch(['78', '87'])) {
-    addVip(['58', '85', '29', '92'], 'Bạc nhớ 78/87 -> Nuôi BT 58-85 & 29-92 (Khung 3 tay)');
-    addBo([...BO_SO_MAP['03'], '50', '05', '38', '83', '27', '72'], 'Nuôi Bộ 03 mở rộng');
-    addBo([...BO_SO_MAP['24'], '27', '72', '49', '94', '38', '83'], 'Nuôi Bộ 24 mở rộng');
-  }
-
-  if (isTargetMatch(['24', '42'])) {
-    addVip(['68', '86'], 'Bạc nhớ 24/42 -> Nuôi BT 68-86 (Khung 3 tay)');
-    addBo([...BO_SO_MAP['13'], '16', '61', '38', '83', '49', '94', '27', '72'], 'Nuôi Bộ 13 mở rộng');
-  }
-
-  if (isBoMatch('14')) {
-    addBo([...BO_SO_MAP['03'], '38', '83', '50', '05'], 'Bạc nhớ Bộ 19 -> Nuôi Bộ 03');
-  }
-
-  if (isBoMatch('02')) {
-    addBo([...BO_SO_MAP['14'], '49', '94', '16', '61', '05', '50', '27', '72'], 'Bạc nhớ Bộ 52 -> Nuôi Bộ 14');
-  }
-
-  if (isBoMatch('03')) {
-    addBo([...BO_SO_MAP['34'], '49', '94', '38', '83'], 'Bạc nhớ Bộ 85 -> Nuôi Bộ 34');
-  }
-
-  if (isBoMatch('24')) {
-    addBo([...BO_SO_MAP['12'], '49', '94', '27', '72', '16', '61'], 'Bạc nhớ Bộ 74 -> Nuôi Bộ 12');
-    addVip(['47', '74', '26', '62'], 'Bạch thủ Bộ 74 -> 47, 74, 26, 62');
-  }
-
-  // Gãy bệt Chạm 0
-  let cham0Streak = 0;
-  for (let i = ascData.length - 2; i >= 0; i--) {
-    if (ascData[i].Result.includes('0')) cham0Streak++;
-    else break;
-  }
-  if (cham0Streak >= 2 && !lastDraw.includes('0')) {
-    addBo([...BO_SO_MAP['12'], ...BO_SO_MAP['13'], ...BO_SO_MAP['23']], 'Thế Gãy Bệt Chạm 0 -> Đánh 3 Bộ 12, 13, 23');
-    addVip(['37', '73'], 'Bạch thủ gãy chạm 0: 37-73');
-  }
-
-  // Gãy bệt Bộ 03, 04, 34
-  let boTamGiacStreak = 0;
-  for (let i = ascData.length - 2; i >= 0; i--) {
-    const dTien = ascData[i].Result.substring(0, 2);
-    const dHau = ascData[i].Result.substring(3, 5);
-    const hit = [...BO_SO_MAP['03'], ...BO_SO_MAP['04'], ...BO_SO_MAP['34']].some(n => n === dTien || n === dHau);
-    if (hit) boTamGiacStreak++;
-    else break;
-  }
-  const lastHitTamGiac = [...BO_SO_MAP['03'], ...BO_SO_MAP['04'], ...BO_SO_MAP['34']].some(n => n === lastTien || n === lastHau);
-  if (boTamGiacStreak >= 2 && !lastHitTamGiac) {
-    addBo(DAN_KEP_FULL, 'Thế Gãy Tam Giác Bộ 03-04-34 -> Bắt Dàn Kép Bằng & Kép Lệch');
-  }
-
-  // Ra Sám cô -> Bắt 2 Tổng: Số Sám & Số Sám + 1
-  const samTongs = [];
-  for (const [k, v] of Object.entries(countsT)) {
-    if (v === 3) {
-      const sDigit = parseInt(k);
-      const t1 = sDigit % 10;
-      const t2 = (sDigit + 1) % 10;
-      samTongs.push(t1.toString());
-      samTongs.push(t2.toString());
-      reasons.push(`Sám cô ${sDigit} -> Bắt 2 Tổng ${t1} và ${t2}`);
-    }
-  }
+  addTouches([traTram, traDonVi], 30, `Bộ Số Trả Nhau Kubet: Trăm ${tram} trả ${traTram}, Đơn vị ${donVi} trả ${traDonVi}`);
 
   const sortedTouches = Object.keys(touchScores).sort((a, b) => touchScores[b] - touchScores[a]);
   const top4Touches = sortedTouches.slice(0, 4);
@@ -1032,63 +894,127 @@ export const getBacNhoAnalysis = (rawData) => {
     vipNumbers: Array.from(vipNumbers),
     nuoiBoNumbers: Array.from(nuoiBoNumbers),
     traNhauTouches: [traTram, traDonVi],
-    samTongs: samTongs,
+    samTongs: [],
     reasons: reasons,
     touchScores: touchScores
   };
 };
 
 // ============================================================================
-// CHẤM ĐIỂM TOÀN DIỆN 100 SỐ 2D (THEO PHÂN TẦNG ƯU TIÊN)
+// CHẤM ĐIỂM TOÀN DIỆN 100 SỐ 2D (THUẬT TOÁN CẦU KÈO TRẢ SỐ ĐỘNG KUBET)
 // ============================================================================
-export const calculateCauScore = (statsArray = [], scoredTongs = [], scoredSingles = [], rawData = []) => {
-  const bn = getBacNhoAnalysis(rawData);
-  const { touches, vipNumbers, nuoiBoNumbers, samTongs } = bn;
+export const calculateCauScore = (statsArray = [], scoredTongs = [], scoredSingles = [], rawData = [], loaiSo = null) => {
+  if (!rawData || rawData.length === 0) return [];
+
+  const ascData = [...rawData].reverse();
+  const lastDraw = ascData[ascData.length - 1].Result;
+  const lastHau = lastDraw.substring(3, 5);
+  const lastChuc = lastHau[0];
+  const lastDv = lastHau[1];
+  const lastTram = lastDraw[2];
+
+  // Lấy 4 số loại và các số giữ từ 10 Cầu Bắt Kèo
+  const lSo = loaiSo || getLoaiSoHauNhi(rawData);
+  const loai4 = lSo?.loai4 || [];
+  const giu6 = lSo?.giu6 || [];
+  const giu7 = lSo?.giu7 || [];
+  const giu8 = lSo?.giu8 || [];
+
+  // 1. THUẬT TOÁN CẦU KÈO TRẢ SỐ ĐỐI ỨNG KUBET
+  const traChuc = BO_TRA_NHAU[lastChuc] || lastChuc;
+  const traDv = BO_TRA_NHAU[lastDv] || lastDv;
+  const traTram = BO_TRA_NHAU[lastTram] || lastTram;
+
+  // 2. BÓNG DƯƠNG & BÓNG ÂM
+  const bdChuc = getBongDuong(lastChuc);
+  const bdDv = getBongDuong(lastDv);
+  const bdTram = getBongDuong(lastTram);
+  const baChuc = getBongAm(lastChuc);
+  const baDv = getBongAm(lastDv);
+
+  // 3. TỔNG TRẢ SỐ
+  const sumHau = (parseInt(lastChuc) + parseInt(lastDv)) % 10;
+  const sum5 = lastDraw.split('').reduce((a, b) => a + parseInt(b), 0) % 10;
+  const bdSumHau = getBongDuong(sumHau.toString());
+
+  // 4. CHẠM TRẢ SỐ TRỌNG ĐIỂM
+  const touchWeights = {};
+  for (let i = 0; i < 10; i++) touchWeights[i.toString()] = 0;
+
+  // Thưởng chạm trả số đối ứng
+  touchWeights[traDv] = (touchWeights[traDv] || 0) + 600;
+  touchWeights[traChuc] = (touchWeights[traChuc] || 0) + 500;
+  touchWeights[traTram] = (touchWeights[traTram] || 0) + 400;
+
+  // Thưởng chạm bóng
+  touchWeights[bdDv] = (touchWeights[bdDv] || 0) + 450;
+  touchWeights[bdChuc] = (touchWeights[bdChuc] || 0) + 400;
+  touchWeights[bdTram] = (touchWeights[bdTram] || 0) + 350;
+  touchWeights[baDv] = (touchWeights[baDv] || 0) + 300;
+  touchWeights[baChuc] = (touchWeights[baChuc] || 0) + 250;
+
+  // Thưởng chạm tổng
+  touchWeights[sumHau.toString()] = (touchWeights[sumHau.toString()] || 0) + 350;
+  touchWeights[sum5.toString()] = (touchWeights[sum5.toString()] || 0) + 300;
+  touchWeights[bdSumHau] = (touchWeights[bdSumHau] || 0) + 250;
+
+  // Thưởng chạm bệt 3 kỳ gần nhất
+  const recent3 = ascData.slice(-3);
+  recent3.forEach(d => {
+    const h = d.Result.slice(3, 5);
+    touchWeights[h[0]] = (touchWeights[h[0]] || 0) + 150;
+    touchWeights[h[1]] = (touchWeights[h[1]] || 0) + 150;
+  });
 
   const stats = [];
   for (let i = 0; i < 100; i++) {
     const num = i.toString().padStart(2, '0');
     const d1 = num[0];
     const d2 = num[1];
-    const tong = ((parseInt(d1) + parseInt(d2)) % 10).toString();
 
     let score = 0;
     const itemReasons = [];
 
-    // TẦNG 1: BẠCH THỦ BẠC NHỚ VIP (+5000 ĐIỂM)
-    if (vipNumbers.includes(num)) {
-      score += 5000;
-      itemReasons.push('Bạch Thủ Bạc Nhớ VIP');
-    }
+    // Phạt số bị loại bởi 10 Cầu Bắt Kèo
+    if (loai4.includes(d1) || loai4.includes(d2)) {
+      score -= 10000;
+    } else {
+      // Điểm cơ bản cho số thuộc dàn giữ
+      if (giu6.includes(d1) && giu6.includes(d2)) {
+        score += 3000;
+        itemReasons.push('Số Giữ Dàn 36s');
+      } else if (giu7.includes(d1) && giu7.includes(d2)) {
+        score += 2000;
+        itemReasons.push('Số Giữ Dàn 50s');
+      } else if (giu8.includes(d1) && giu8.includes(d2)) {
+        score += 1000;
+        itemReasons.push('Số Giữ Dàn 64s');
+      }
 
-    // TẦNG 2: BỘ NUÔI LIÊN HOÀN BẠC NHỚ (+3500 ĐIỂM)
-    if (nuoiBoNumbers.includes(num)) {
-      score += 3500;
-      itemReasons.push('Bộ Nuôi Bạc Nhớ');
-    }
+      // Điểm Cầu Kèo Trả Số từ Chạm Trọng Điểm
+      const tScore1 = touchWeights[d1] || 0;
+      const tScore2 = touchWeights[d2] || 0;
+      score += (tScore1 + tScore2);
 
-    // TẦNG 3: SIÊU CHẠM BẠC NHỚ (+1500 -> +800 ĐIỂM)
-    if (d1 === touches[0] || d2 === touches[0]) {
-      score += 1500;
-      itemReasons.push(`Chạm Vàng (${touches[0]})`);
-    } else if (d1 === touches[1] || d2 === touches[1]) {
-      score += 1200;
-      itemReasons.push(`Chạm Bạc (${touches[1]})`);
-    } else if (d1 === touches[2] || d2 === touches[2]) {
-      score += 1000;
-      itemReasons.push(`Chạm Lót (${touches[2]})`);
-    }
+      if (tScore1 >= 500 || tScore2 >= 500) {
+        itemReasons.push('Chạm Trả Số Đối Ứng');
+      }
 
-    // TẦNG 5: SÁM CÔ 2 TỔNG (+1200 ĐIỂM)
-    if (samTongs.includes(tong)) {
-      score += 1200;
-      itemReasons.push(`Tổng Sám (${tong})`);
-    }
+      // Điểm thưởng cặp số trả nhau đối ứng
+      if (d1 === traChuc && d2 === traDv) {
+        score += 900;
+        itemReasons.push('Cặp Trả Số Đối Ứng');
+      }
+      if (d1 === bdChuc && d2 === bdDv) {
+        score += 700;
+        itemReasons.push('Cặp Trả Số Bóng Dương');
+      }
 
-    // TẦNG 6: KÉP BẰNG (+300 ĐIỂM)
-    if (d1 === d2) {
-      score += 300;
-      itemReasons.push('Kép Bằng');
+      // Kép bằng
+      if (d1 === d2) {
+        score += 350;
+        itemReasons.push('Kép Trả Số');
+      }
     }
 
     stats.push({

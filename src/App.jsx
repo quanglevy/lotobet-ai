@@ -1246,18 +1246,18 @@ function App() {
     const pScoredSingles = analyzeSingleDigits(dataSlice);
     const pScoredTongs = analyzeTong(dataSlice);
     const pScored2D = analyzeUnified2D(dataSlice);
-    const pCauScore = calculateCauScore(pScored2D, pScoredTongs, pScoredSingles, dataSlice);
+    const pLoaiSo = getLoaiSoHauNhi(dataSlice);
+    const pCauScore = calculateCauScore(pScored2D, pScoredTongs, pScoredSingles, dataSlice, pLoaiSo);
 
-    const pD64 = generateReversibleSet(pCauScore, 64);
-    const pD50 = generateReversibleSetFromDan(pD64, pCauScore, 50);
-    const pD36 = generateReversibleSetFromDan(pD64, pCauScore, 36);
+    const pD64 = pLoaiSo?.dan64 || generateReversibleSet(pCauScore, 64);
+    const pD50 = pLoaiSo?.dan50 || generateReversibleSetFromDan(pD64, pCauScore, 50);
+    const pD36 = pLoaiSo?.dan36 || generateReversibleSetFromDan(pD64, pCauScore, 36);
     const pD20 = generateReversibleSetFromDan(pD36, pCauScore, 20);
     const pD10 = generateReversibleSetFromDan(pD20, pCauScore, 10);
     const pD4 = generateReversibleSetFromDan(pD10, pCauScore, 4);
     const pD2 = generateReversibleSetFromDan(pD4, pCauScore, 2);
     
     const pTXCL = predictTXCL(dataSlice);
-    const pLoaiSo = getLoaiSoHauNhi(dataSlice);
 
     let isLoai2Hit = false;
     let isLoai3Hit = false;
@@ -1324,20 +1324,21 @@ function App() {
     };
   };
 
+  const loaiSo = getLoaiSoHauNhi(rawData);
   const scoredSingles = analyzeSingleDigits(rawData);
   const scoredTongs = analyzeTong(rawData);
   const scored2D = analyzeUnified2D(rawData);
-  const cauScore = calculateCauScore(scored2D, scoredTongs, scoredSingles, rawData);
-  const dan64 = generateReversibleSet(cauScore, 64);
-  const dan50 = generateReversibleSetFromDan(dan64, cauScore, 50);
-  const dan36 = generateReversibleSetFromDan(dan64, cauScore, 36);
+  const cauScore = calculateCauScore(scored2D, scoredTongs, scoredSingles, rawData, loaiSo);
+
+  const dan64 = loaiSo?.dan64 || generateReversibleSet(cauScore, 64);
+  const dan50 = loaiSo?.dan50 || generateReversibleSetFromDan(dan64, cauScore, 50);
+  const dan36 = loaiSo?.dan36 || generateReversibleSetFromDan(dan64, cauScore, 36);
   const dan20 = generateReversibleSetFromDan(dan36, cauScore, 20);
   const dan10 = generateReversibleSetFromDan(dan20, cauScore, 10);
   const dan4 = generateReversibleSetFromDan(dan10, cauScore, 4);
   const dan2 = generateReversibleSetFromDan(dan4, cauScore, 2);
   const txcl = predictTXCL(rawData);
   const bacNhoInfo = getBacNhoAnalysis(rawData);
-  const loaiSo = getLoaiSoHauNhi(rawData);
 
   let historyCheck = null;
   const historyList3 = [];
