@@ -600,13 +600,29 @@ export const getLoaiSoHauNhi = (rawData) => {
     };
   });
 
-  // 2. Xếp hạng cầu từ TOP 1 đến TOP 9 dựa trên AI Score
-  const rankedBridges = [...bridgeStats].sort((a, b) => {
-    if (b.aiScore !== a.aiScore) return b.aiScore - a.aiScore;
-    if (b.streak !== a.streak) return b.streak - a.streak;
-    if (b.winRate !== a.winRate) return b.winRate - a.winRate;
-    return 0;
-  }).map((b, idx) => ({
+  // 2. Xếp hạng cầu từ TOP 1 đến TOP 10
+  // Cố định ưu tiên 4 Cầu cốt lõi của người dùng làm TOP 1 -> TOP 4:
+  // TOP 1: cau_10 (Tổng Chục Ngàn + Trăm + 1)
+  // TOP 2: cau_7 (Tổng Chục Ngàn + ĐV + 1)
+  // TOP 3: cau_5 (Tổng Ngàn + Đơn Vị)
+  // TOP 4: cau_6 (Tổng Trăm + ĐV + 1)
+  // Các cầu còn lại (cau_8, cau_9, cau_1, cau_2, cau_3, cau_4) xếp hạng TOP 5 -> TOP 10 theo AI Score / Streak / WinRate
+  const priorityIds = ['cau_10', 'cau_7', 'cau_5', 'cau_6'];
+  
+  const top4Priority = priorityIds
+    .map(id => bridgeStats.find(b => b.id === id))
+    .filter(Boolean);
+
+  const remainingBridges = bridgeStats
+    .filter(b => !priorityIds.includes(b.id))
+    .sort((a, b) => {
+      if (b.aiScore !== a.aiScore) return b.aiScore - a.aiScore;
+      if (b.streak !== a.streak) return b.streak - a.streak;
+      if (b.winRate !== a.winRate) return b.winRate - a.winRate;
+      return 0;
+    });
+
+  const rankedBridges = [...top4Priority, ...remainingBridges].map((b, idx) => ({
     ...b,
     rank: idx + 1,
     rankBadge: idx === 0 ? '🥇 TOP 1' : (idx === 1 ? '🥈 TOP 2' : (idx === 2 ? '🥉 TOP 3' : (idx === 3 ? '🎖️ TOP 4' : `TOP ${idx + 1}`)))

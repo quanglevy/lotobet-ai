@@ -336,13 +336,15 @@ tr:hover td {
   width: 100%;
 }
 .dashboard-col-main {
-  width: 40%;
+  flex: 1 1 0%;
+  width: auto;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 .dashboard-col-side {
-  width: 20%;
+  width: 220px;
+  min-width: 220px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
