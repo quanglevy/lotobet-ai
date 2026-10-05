@@ -67,168 +67,225 @@ export const checkTXCL = (resultStr) => {
 };
 
 // ============================================================================
-// PHẦN A: 15 QUY LUẬT DỰ ĐOÁN TÀI XỈU - CHẴN LẺ (KHUNG 3 TAY)
+// ============================================================================
+// PHẦN A: THUẬT TOÁN AI DỰ ĐOÁN TÀI XỈU - CHẴN LẺ (TỔNG 5 SỐ - KHUNG 3 TAY)
 // ============================================================================
 export const predictTXCL = (data) => {
   if (!data || data.length === 0) {
-    return { tx: 'TÀI', cl: 'CHẴN', rate: '85%', reason: 'Khởi tạo mặc định' };
+    return { 
+      tx: 'TÀI', 
+      cl: 'CHẴN', 
+      rate: '85%', 
+      txRate: '85%', 
+      clRate: '85%', 
+      txPattern: 'Mặc định', 
+      clPattern: 'Mặc định', 
+      reason: 'Khởi tạo mặc định' 
+    };
   }
 
   const ascData = [...data].reverse();
-  const lastDraw = ascData[ascData.length - 1].Result;
+  const n = ascData.length;
+  const lastDraw = ascData[n - 1].Result;
   const lastTien = lastDraw.substring(0, 2);
   const lastHau = lastDraw.substring(3, 5);
+  const sum5 = lastDraw.split('').reduce((a, b) => a + parseInt(b), 0);
 
-  let txPrediction = null;
-  let clPrediction = null;
-  let txRate = '85%';
-  let reasons = [];
+  // 1. Phân tích chuỗi lịch sử kết quả gần nhất (TX & CL history)
+  const txHistory = [];
+  const clHistory = [];
+  const sumsHistory = [];
 
+  for (let i = Math.max(0, n - 15); i < n; i++) {
+    const res = ascData[i].Result;
+    const s = res.split('').reduce((a, b) => a + parseInt(b), 0);
+    sumsHistory.push(s);
+    txHistory.push(s >= 23 ? 'TÀI' : 'XỈU');
+    clHistory.push(s % 2 === 0 ? 'CHẴN' : 'LẺ');
+  }
+
+  // 2. Phân tích Nhịp Cầu Tài Xỉu (Bệt / Đảo 1-1 / 2-2 / Mean Reversion)
+  let txScore = 0; // > 0 -> TÀI, < 0 -> XỈU
+  let txReasons = [];
+  let txPattern = 'Theo nhịp tổng';
+
+  const lastTX = txHistory[txHistory.length - 1];
+  let currentTXStreak = 1;
+  for (let i = txHistory.length - 2; i >= 0; i--) {
+    if (txHistory[i] === lastTX) currentTXStreak++;
+    else break;
+  }
+
+  // Kiểm tra Cầu Bệt Tài/Xỉu
+  if (currentTXStreak >= 2 && currentTXStreak <= 4) {
+    const delta = currentTXStreak * 30;
+    txScore += (lastTX === 'TÀI' ? delta : -delta);
+    txReasons.push(`Cầu Bệt ${lastTX} ${currentTXStreak} tay (Theo cầu bệt)`);
+    txPattern = `Bệt ${lastTX} ${currentTXStreak}T`;
+  } else if (currentTXStreak >= 5) {
+    const opposite = lastTX === 'TÀI' ? 'XỈU' : 'TÀI';
+    const delta = 60;
+    txScore += (opposite === 'TÀI' ? delta : -delta);
+    txReasons.push(`Cầu Bệt ${lastTX} ${currentTXStreak} tay (Bẻ sang ${opposite})`);
+    txPattern = `Bẻ Bệt ${currentTXStreak}T ➔ ${opposite}`;
+  } else {
+    // Kiểm tra Cầu Đảo 1-1 (T-X-T-X)
+    let is11 = true;
+    if (txHistory.length >= 3) {
+      for (let i = txHistory.length - 1; i >= txHistory.length - 3; i--) {
+        if (txHistory[i] === txHistory[i - 1]) {
+          is11 = false;
+          break;
+        }
+      }
+    } else {
+      is11 = false;
+    }
+
+    if (is11) {
+      const next11 = lastTX === 'TÀI' ? 'XỈU' : 'TÀI';
+      txScore += (next11 === 'TÀI' ? 50 : -50);
+      txReasons.push(`Cầu Đảo 1-1 (Nhịp Đảo ➔ Đánh ${next11})`);
+      txPattern = `Đảo 1-1 ➔ ${next11}`;
+    }
+  }
+
+  // Phân tích Mean Reversion trên Tổng 5 Số (Trung bình lý thuyết là 22.5)
+  const recent3Sums = sumsHistory.slice(-3);
+  const avg3Sums = recent3Sums.reduce((a, b) => a + b, 0) / (recent3Sums.length || 1);
+  if (avg3Sums >= 28) {
+    txScore -= 40; // Kéo về Xỉu
+    txReasons.push(`Tổng 3 kỳ TB ${avg3Sums.toFixed(1)} (Quá tải ➔ Ép Xỉu)`);
+  } else if (avg3Sums <= 16) {
+    txScore += 40; // Kéo về Tài
+    txReasons.push(`Tổng 3 kỳ TB ${avg3Sums.toFixed(1)} (Thấp kỷ lục ➔ Ép Tài)`);
+  }
+
+  // Phân tích Thế Số & Bạc Nhớ Kép
   const counts = {};
   for (const char of lastDraw) {
     counts[char] = (counts[char] || 0) + 1;
   }
   const values = Object.values(counts);
-  const keys = Object.keys(counts);
 
-  const sum5 = lastDraw.split('').reduce((a, b) => a + parseInt(b), 0);
-
-  // Quy luật 11: 5 số có 222 kẹp 1 hoặc 6 -> TÀI (90%)
   if (counts['2'] === 3 && (counts['1'] >= 1 || counts['6'] >= 1)) {
-    txPrediction = 'TÀI';
-    txRate = '90%';
-    reasons.push('Thế 222 kẹp 1/6 (Tài 90%)');
-  }
-
-  // Quy luật 12: 5 số có 999 kẹp 4 hoặc 5 -> XỈU (90%)
-  else if (counts['9'] === 3 && (counts['4'] >= 1 || counts['5'] >= 1)) {
-    txPrediction = 'XỈU';
-    txRate = '90%';
-    reasons.push('Thế 999 kẹp 4/5 (Xỉu 90%)');
-  }
-
-  // Quy luật 4: Tiền/Hậu có 33 -> TÀI (95%)
-  else if (lastTien === '33' || lastHau === '33') {
-    txPrediction = 'TÀI';
-    txRate = '95%';
-    reasons.push('Bạc nhớ Kép 33 (Tài 95%)');
-  }
-
-  // Quy luật 2: Tiền/Hậu có 01 -> TÀI (90%)
-  else if (lastTien === '01' || lastHau === '01') {
-    txPrediction = 'TÀI';
-    txRate = '90%';
-    reasons.push('Bạc nhớ 01 (Tài 90%)');
-  }
-
-  // Quy luật 6: Tiền/Hậu có 98 -> XỈU (90%)
-  else if (lastTien === '98' || lastHau === '98') {
-    txPrediction = 'XỈU';
-    txRate = '90%';
-    reasons.push('Bạc nhớ 98 (Xỉu 90%)');
-  }
-
-  // Quy luật 3: Tiền/Hậu có 11 -> XỈU (80%)
-  else if (lastTien === '11' || lastHau === '11') {
-    txPrediction = 'XỈU';
-    txRate = '80%';
-    reasons.push('Bạc nhớ Kép 11 (Xỉu 80%)');
-  }
-
-  // Quy luật 5: Tiền/Hậu có 88 -> TÀI (70%)
-  else if (lastTien === '88' || lastHau === '88') {
-    txPrediction = 'TÀI';
-    txRate = '70%';
-    reasons.push('Bạc nhớ Kép 88 (Tài 70%)');
-  }
-
-  // Quy luật 7: Tiền/Hậu có 99 -> XỈU (70%)
-  else if (lastTien === '99' || lastHau === '99') {
-    txPrediction = 'XỈU';
-    txRate = '70%';
-    reasons.push('Bạc nhớ Kép 99 (Xỉu 70%)');
-  }
-
-  // Quy luật 1: Tiền/Hậu có 00 -> XỈU (60%)
-  else if (lastTien === '00' || lastHau === '00') {
-    txPrediction = 'XỈU';
-    txRate = '60%';
-    reasons.push('Bạc nhớ Kép 00 (Xỉu 60%)');
-  }
-
-  // Quy luật 8: Cù lũ (3 con giống + 1 đôi, vd 25552, 33888) -> Bẻ tổng
-  else if (values.includes(3) && values.includes(2)) {
-    txPrediction = sum5 >= 23 ? 'XỈU' : 'TÀI';
-    txRate = '85%';
-    reasons.push(`Cù Lũ tổng ${sum5} (Bẻ cầu ${txPrediction})`);
-  }
-
-  // Quy luật 14: Sám cô đơn thuần (3 con giống không phải cù lũ, vd 21226) -> TÀI bất chấp tổng
-  else if (values.includes(3) && !values.includes(2)) {
-    txPrediction = 'TÀI';
-    txRate = '85%';
-    reasons.push('Thế Sám Cô (Đánh Tài)');
-  }
-
-  // Quy luật 13: 2 Đôi + 1 số lẻ (vd 51122 số lẻ là 5)
-  else if (values.filter(v => v === 2).length === 2) {
-    let singleDigit = 0;
-    for (const k of keys) {
-      if (counts[k] === 1) singleDigit = parseInt(k);
+    txScore += 45;
+    txReasons.push('Thế 222 kẹp 1/6 (Tài 90%)');
+  } else if (counts['9'] === 3 && (counts['4'] >= 1 || counts['5'] >= 1)) {
+    txScore -= 45;
+    txReasons.push('Thế 999 kẹp 4/5 (Xỉu 90%)');
+  } else if (lastTien === '33' || lastHau === '33') {
+    txScore += 40;
+    txReasons.push('Bạc nhớ Kép 33 (Tài 95%)');
+  } else if (lastTien === '01' || lastHau === '01') {
+    txScore += 35;
+    txReasons.push('Bạc nhớ 01 (Tài 90%)');
+  } else if (lastTien === '98' || lastHau === '98') {
+    txScore -= 40;
+    txReasons.push('Bạc nhớ 98 (Xỉu 90%)');
+  } else if (lastTien === '11' || lastHau === '11') {
+    txScore -= 35;
+    txReasons.push('Bạc nhớ Kép 11 (Xỉu 80%)');
+  } else if (values.includes(3) && values.includes(2)) {
+    // Cù lũ -> bẻ tổng
+    if (sum5 >= 23) {
+      txScore -= 30;
+      txReasons.push(`Cù Lũ tổng ${sum5} (Bẻ Xỉu)`);
+    } else {
+      txScore += 30;
+      txReasons.push(`Cù Lũ tổng ${sum5} (Bẻ Tài)`);
     }
-    txPrediction = singleDigit >= 5 ? 'XỈU' : 'TÀI';
-    txRate = '85%';
-    reasons.push(`Thế 2 Đôi số lẻ ${singleDigit} (Đánh ${txPrediction})`);
   }
 
-  // Quy luật 10: Sảnh (5 số liên tiếp) -> Bẻ tổng
-  const sortedDigits = lastDraw.split('').map(Number).sort((a, b) => a - b);
-  let isStraight = true;
-  for (let i = 0; i < 4; i++) {
-    if (sortedDigits[i+1] - sortedDigits[i] !== 1) isStraight = false;
-  }
-  if (!txPrediction && isStraight) {
-    txPrediction = sum5 >= 23 ? 'XỈU' : 'TÀI';
-    txRate = '85%';
-    reasons.push(`Sảnh liên tiếp tổng ${sum5} (Bẻ cầu ${txPrediction})`);
-  }
-
-  // Quy luật 9: Số rời (5 số khác nhau không sảnh) -> Bẻ tổng
-  if (!txPrediction && keys.length === 5 && !isStraight) {
-    txPrediction = sum5 >= 23 ? 'XỈU' : 'TÀI';
-    txRate = '80%';
-    reasons.push(`Số Rời tổng ${sum5} (Bẻ cầu ${txPrediction})`);
+  // Tỷ lệ số lớn/nhỏ trong kỳ vừa xổ
+  let bigDigits = 0;
+  for (let i = 0; i < 5; i++) if (parseInt(lastDraw[i]) >= 5) bigDigits++;
+  if (bigDigits >= 4) {
+    txScore += 20;
+    txReasons.push(`Thế 4-5 số lớn (Thuận Tài)`);
+  } else if (bigDigits <= 1) {
+    txScore -= 20;
+    txReasons.push(`Thế 4-5 số nhỏ (Thuận Xỉu)`);
   }
 
-  // Mặc định Tài Xỉu nếu không rơi vào các thế trên
-  if (!txPrediction) {
-    let bigCount = 0;
-    for (let i = 0; i < 5; i++) if (parseInt(lastDraw[i]) >= 5) bigCount++;
-    txPrediction = bigCount >= 3 ? 'TÀI' : 'XỈU';
-    reasons.push(`Thuận tỷ lệ số lớn/nhỏ (${txPrediction})`);
+  const txPrediction = txScore >= 0 ? 'TÀI' : 'XỈU';
+  const txConfidence = Math.min(95, Math.max(70, 75 + Math.round(Math.abs(txScore) / 4)));
+
+  // 3. Phân tích Nhịp Cầu Chẵn Lẻ (Parity AI)
+  let clScore = 0; // > 0 -> CHẴN, < 0 -> LẺ
+  let clReasons = [];
+  let clPattern = 'Theo nhịp tổng';
+
+  const lastCL = clHistory[clHistory.length - 1];
+  let currentCLStreak = 1;
+  for (let i = clHistory.length - 2; i >= 0; i--) {
+    if (clHistory[i] === lastCL) currentCLStreak++;
+    else break;
   }
 
-  // Quy luật 15: CHẴN - LẺ (Tổng lẻ đánh Chẵn, Tổng chẵn đánh Lẻ)
+  if (currentCLStreak >= 2 && currentCLStreak <= 4) {
+    const delta = currentCLStreak * 30;
+    clScore += (lastCL === 'CHẴN' ? delta : -delta);
+    clReasons.push(`Cầu Bệt ${lastCL} ${currentCLStreak} tay`);
+    clPattern = `Bệt ${lastCL} ${currentCLStreak}T`;
+  } else if (currentCLStreak >= 5) {
+    const opposite = lastCL === 'CHẴN' ? 'LẺ' : 'CHẴN';
+    clScore += (opposite === 'CHẴN' ? 50 : -50);
+    clReasons.push(`Cầu Bệt ${lastCL} ${currentCLStreak} tay (Bẻ sang ${opposite})`);
+    clPattern = `Bẻ Bệt ➔ ${opposite}`;
+  } else {
+    let is11CL = true;
+    if (clHistory.length >= 3) {
+      for (let i = clHistory.length - 1; i >= clHistory.length - 3; i--) {
+        if (clHistory[i] === clHistory[i - 1]) {
+          is11CL = false;
+          break;
+        }
+      }
+    } else {
+      is11CL = false;
+    }
+    if (is11CL) {
+      const next11CL = lastCL === 'CHẴN' ? 'LẺ' : 'CHẴN';
+      clScore += (next11CL === 'CHẴN' ? 45 : -45);
+      clReasons.push(`Cầu Đảo Chẵn Lẻ 1-1 (Đánh ${next11CL})`);
+      clPattern = `Đảo 1-1 ➔ ${next11CL}`;
+    }
+  }
+
+  // Parity của 5 chữ số trong kết quả vừa xong
   let evenCount = 0;
-  let oddCount = 0;
   for (const char of lastDraw) {
     if (parseInt(char) % 2 === 0) evenCount++;
-    else oddCount++;
+  }
+  if (evenCount >= 4) {
+    clScore -= 30; // Nhiều chẵn quá -> đảo sang lẻ
+    clReasons.push(`${evenCount} số chẵn (Đảo Lẻ)`);
+  } else if (evenCount <= 1) {
+    clScore += 30; // Nhiều lẻ quá -> đảo sang chẵn
+    clReasons.push(`${5 - evenCount} số lẻ (Đảo Chẵn)`);
+  } else if (sum5 % 2 !== 0) {
+    clScore += 15;
+    clReasons.push('Đảo Tổng Lẻ (Đánh Chẵn)');
+  } else {
+    clScore -= 15;
+    clReasons.push('Đảo Tổng Chẵn (Đánh Lẻ)');
   }
 
-  if (oddCount === 5 || sum5 % 2 !== 0) {
-    clPrediction = 'CHẴN';
-    reasons.push('Đảo Chẵn Lẻ (Đánh Chẵn)');
-  } else {
-    clPrediction = 'LẺ';
-    reasons.push('Đảo Chẵn Lẻ (Đánh Lẻ)');
-  }
+  const clPrediction = clScore >= 0 ? 'CHẴN' : 'LẺ';
+  const clConfidence = Math.min(95, Math.max(70, 75 + Math.round(Math.abs(clScore) / 4)));
+
+  const combinedReasons = [...txReasons.slice(0, 2), ...clReasons.slice(0, 2)].join(' • ');
 
   return {
     tx: txPrediction,
     cl: clPrediction,
-    rate: txRate,
-    reason: reasons.join(' • ')
+    rate: `${Math.round((txConfidence + clConfidence) / 2)}%`,
+    txRate: `${txConfidence}%`,
+    clRate: `${clConfidence}%`,
+    txPattern,
+    clPattern,
+    reason: combinedReasons || 'Thuận chu kỳ xác suất động'
   };
 };
 

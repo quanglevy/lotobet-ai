@@ -35,9 +35,13 @@ const ExecutiveDashboard = ({
 
   const wins4 = historyList10.filter(h => h && h.isLoai4Hit).length;
   const wins3 = historyList10.filter(h => h && h.isLoai3Hit).length;
+  const winsTX = historyList10.filter(h => h && h.pTXCL && h.actualTXCL && h.pTXCL.tx === h.actualTXCL.tx).length;
+  const winsCL = historyList10.filter(h => h && h.pTXCL && h.actualTXCL && h.pTXCL.cl === h.actualTXCL.cl).length;
   const total = historyList10.length;
   const rate4 = total > 0 ? Math.round((wins4 / total) * 100) : 0;
   const rate3 = total > 0 ? Math.round((wins3 / total) * 100) : 0;
+  const rateTX = total > 0 ? Math.round((winsTX / total) * 100) : 0;
+  const rateCL = total > 0 ? Math.round((winsCL / total) * 100) : 0;
 
   const renderStreak10Loai4 = () => {
     if (!historyList10 || historyList10.length === 0) return null;
@@ -126,6 +130,104 @@ const ExecutiveDashboard = ({
               </div>
             );
           })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderStreak10TXCL = () => {
+    if (!historyList10 || historyList10.length === 0) return null;
+
+    return (
+      <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #334155', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        {/* Dòng 1: Thống kê 10 kỳ Tài Xỉu */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+            <span style={{ fontSize: '11px', color: '#38bdf8', fontWeight: 'bold' }}>
+              🎲 KẾT QUẢ 10 KỲ (TÀI XỈU):
+            </span>
+            <span style={{ fontSize: '11px', fontWeight: 'bold', color: winsTX >= 7 ? '#34d399' : (winsTX >= 5 ? '#fbbf24' : '#f87171'), backgroundColor: 'rgba(0,0,0,0.5)', padding: '2px 8px', borderRadius: '4px', border: '1px solid #475569' }}>
+              {winsTX}/{total} Trúng ({rateTX}%)
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {[...historyList10].reverse().map((h, idx) => {
+              const isWin = h.pTXCL && h.actualTXCL && h.pTXCL.tx === h.actualTXCL.tx;
+              const drawNum = h.drawId ? h.drawId.slice(-3) : (idx + 1);
+              const predTX = h.pTXCL ? h.pTXCL.tx : '';
+              const actTX = h.actualTXCL ? h.actualTXCL.tx : '';
+              const actSum = h.actualTXCL ? h.actualTXCL.sum : '';
+
+              return (
+                <div 
+                  key={idx}
+                  title={`Kỳ ${drawNum}: ${isWin ? 'Trúng (Thắng)' : 'Trượt (Thua)'} | Dự đoán: ${predTX} | Thực tế: Tổng ${actSum} (${actTX})`}
+                  style={{
+                    backgroundColor: isWin ? '#065f46' : '#7f1d1d',
+                    border: isWin ? '1px solid #34d399' : '1px solid #ef4444',
+                    color: 'white',
+                    borderRadius: '5px',
+                    padding: '2px 6px',
+                    fontSize: '10.5px',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    boxShadow: isWin ? '0 1px 4px rgba(52, 211, 153, 0.4)' : '0 1px 4px rgba(239, 68, 68, 0.4)'
+                  }}
+                >
+                  <span style={{ color: '#cbd5e1', fontSize: '10px' }}>{drawNum}:</span>
+                  <span style={{ fontSize: '10px', color: '#e2e8f0' }}>{predTX}</span>
+                  <span style={{ fontSize: '11px' }}>{isWin ? '✅' : '❌'}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Dòng 2: Thống kê 10 kỳ Chẵn Lẻ */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginTop: '2px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+            <span style={{ fontSize: '11px', color: '#f472b6', fontWeight: 'bold' }}>
+              ⚖️ KẾT QUẢ 10 KỲ (CHẴN LẺ):
+            </span>
+            <span style={{ fontSize: '11px', fontWeight: 'bold', color: winsCL >= 7 ? '#34d399' : (winsCL >= 5 ? '#fbbf24' : '#f87171'), backgroundColor: 'rgba(0,0,0,0.5)', padding: '2px 8px', borderRadius: '4px', border: '1px solid #475569' }}>
+              {winsCL}/{total} Trúng ({rateCL}%)
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {[...historyList10].reverse().map((h, idx) => {
+              const isWin = h.pTXCL && h.actualTXCL && h.pTXCL.cl === h.actualTXCL.cl;
+              const drawNum = h.drawId ? h.drawId.slice(-3) : (idx + 1);
+              const predCL = h.pTXCL ? h.pTXCL.cl : '';
+              const actCL = h.actualTXCL ? h.actualTXCL.cl : '';
+              const actSum = h.actualTXCL ? h.actualTXCL.sum : '';
+
+              return (
+                <div 
+                  key={idx}
+                  title={`Kỳ ${drawNum}: ${isWin ? 'Trúng (Thắng)' : 'Trượt (Thua)'} | Dự đoán: ${predCL} | Thực tế: Tổng ${actSum} (${actCL})`}
+                  style={{
+                    backgroundColor: isWin ? '#065f46' : '#7f1d1d',
+                    border: isWin ? '1px solid #34d399' : '1px solid #ef4444',
+                    color: 'white',
+                    borderRadius: '5px',
+                    padding: '2px 6px',
+                    fontSize: '10.5px',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    boxShadow: isWin ? '0 1px 4px rgba(52, 211, 153, 0.4)' : '0 1px 4px rgba(239, 68, 68, 0.4)'
+                  }}
+                >
+                  <span style={{ color: '#cbd5e1', fontSize: '10px' }}>{drawNum}:</span>
+                  <span style={{ fontSize: '10px', color: '#e2e8f0' }}>{predCL}</span>
+                  <span style={{ fontSize: '11px' }}>{isWin ? '✅' : '❌'}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     );
@@ -366,6 +468,73 @@ const ExecutiveDashboard = ({
               </div>
             </div>
 
+            {/* 3. MỤC TÀI XỈU & CHẴN LẺ (TỔNG 5 SỐ - KHUNG 3 TAY) */}
+            <div style={{ backgroundColor: '#0f172a', padding: '12px', borderRadius: '10px', border: '1.5px solid #ec4899', boxShadow: '0 0 10px rgba(236, 72, 153, 0.2)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '4px' }}>
+                <span style={{ color: '#f472b6', fontWeight: 'bold', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '16px' }}>🎲</span> ⚡ TỔNG HỢP KÈO TÀI XỈU - CHẴN LẺ (TỔNG 5 SỐ):
+                </span>
+                <span style={{ backgroundColor: '#831843', color: '#fbcfe8', fontSize: '11px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '4px', border: '1px solid #db2777' }}>
+                  Khung 3 Tay - Bắt Nhịp AI
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {/* 2 Khung Dự Đoán: TÀI XỈU & CHẴN LẺ */}
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  {/* Dự đoán Tài Xỉu */}
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '8px', 
+                    backgroundColor: '#1e293b', 
+                    padding: '6px 14px', 
+                    borderRadius: '8px', 
+                    border: '1.5px solid #06b6d4',
+                    boxShadow: '0 0 8px rgba(6, 182, 212, 0.25)'
+                  }}>
+                    <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 'bold' }}>TÀI XỈU:</span>
+                    <span style={{ color: txcl.tx === 'TÀI' ? '#38bdf8' : '#fb923c', fontWeight: '900', fontSize: '1.35rem' }}>
+                      {txcl.tx}
+                    </span>
+                    <span style={{ backgroundColor: 'rgba(6, 182, 212, 0.2)', color: '#67e8f9', fontSize: '10.5px', fontWeight: 'bold', padding: '2px 7px', borderRadius: '4px' }}>
+                      {txcl.txRate || txcl.rate || '85%'}
+                    </span>
+                  </div>
+
+                  {/* Dự đoán Chẵn Lẻ */}
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '8px', 
+                    backgroundColor: '#1e293b', 
+                    padding: '6px 14px', 
+                    borderRadius: '8px', 
+                    border: '1.5px solid #ec4899',
+                    boxShadow: '0 0 8px rgba(236, 72, 153, 0.25)'
+                  }}>
+                    <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 'bold' }}>CHẴN LẺ:</span>
+                    <span style={{ color: txcl.cl === 'CHẴN' ? '#facc15' : '#f472b6', fontWeight: '900', fontSize: '1.35rem' }}>
+                      {txcl.cl}
+                    </span>
+                    <span style={{ backgroundColor: 'rgba(236, 72, 153, 0.2)', color: '#fbcfe8', fontSize: '10.5px', fontWeight: 'bold', padding: '2px 7px', borderRadius: '4px' }}>
+                      {txcl.clRate || '80%'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Lý do cầu AI */}
+                {txcl.reason && (
+                  <div style={{ fontSize: '11.5px', color: '#cbd5e1', backgroundColor: 'rgba(15, 23, 42, 0.6)', padding: '5px 10px', borderRadius: '5px', borderLeft: '3px solid #ec4899' }}>
+                    <strong style={{ color: '#f472b6' }}>Cơ sở cầu:</strong> {txcl.reason}
+                  </div>
+                )}
+
+                {/* Thống kê 10 kỳ trực tiếp của Tài Xỉu & Chẵn Lẻ */}
+                {renderStreak10TXCL()}
+              </div>
+            </div>
+
             {/* ========================================================================= */}
             {/* PHẦN 2: 🟢 BẢNG XẾP HẠNG 10 CẦU BẮT SỐ ĐỘNG (TOP 1 ➔ TOP 10) */}
             {/* ========================================================================= */}
@@ -593,25 +762,7 @@ const ExecutiveDashboard = ({
             {renderCopyButton(dan64, "Dàn 64 Số")}
           </div>
 
-          {/* Tài Xỉu & Chẵn Lẻ */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '16px', borderTop: '1px solid #334155', paddingTop: '12px' }}>
-            <div style={{ color: 'white', fontWeight: 'bold', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ color: '#ec4899' }}>🎲</span> TÀI XỈU - CHẴN LẺ (TỔNG 5 SỐ - KHUNG 3 TAY)
-            </div>
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.25rem' }}>
-              <div style={{ backgroundColor: '#1e293b', padding: '0.5rem 1rem', borderRadius: '6px', color: '#06b6d4', fontWeight: 'bold', fontSize: '1.25rem', border: '1px solid #334155' }}>
-                {txcl.tx} <span style={{ fontSize: '0.75rem', color: '#10b981' }}>({txcl.rate})</span>
-              </div>
-              <div style={{ backgroundColor: '#1e293b', padding: '0.5rem 1rem', borderRadius: '6px', color: '#ec4899', fontWeight: 'bold', fontSize: '1.25rem', border: '1px solid #334155' }}>
-                {txcl.cl}
-              </div>
-            </div>
-            {txcl.reason && (
-              <div style={{ color: '#9ca3af', fontSize: '12px', fontStyle: 'italic' }}>
-                Lý do cầu: <span style={{ color: '#e5e7eb' }}>{txcl.reason}</span>
-              </div>
-            )}
-          </div>
+
 
         </div>
 
