@@ -296,90 +296,22 @@ export const predictTXCL = (data) => {
 export const CORE_BRIDGES = [
   {
     id: 'cau_1',
-    name: 'Cầu 1 (Tổng 3 Con Cuối)',
-    shortName: 'Cầu 1 (3 Con Cuối)',
-    calc: (res) => ((parseInt(res[2]) + parseInt(res[3]) + parseInt(res[4])) % 10).toString(),
+    name: 'Cầu 1 (Tổng Chục Ngàn + Trăm + 1)',
+    shortName: 'Cầu 1 (Vạn+Trăm+1)',
+    calc: (res) => ((parseInt(res[0]) + parseInt(res[2]) + 1) % 10).toString(),
     calcFormula: (res) => {
-      const sum = parseInt(res[2]) + parseInt(res[3]) + parseInt(res[4]);
+      const sum = parseInt(res[0]) + parseInt(res[2]) + 1;
       const digit = (sum % 10).toString();
       return {
-        formulaText: `Trăm(${res[2]}) + Chục(${res[3]}) + ĐV(${res[4]}) = ${sum} ➔ Loại ${digit}`,
+        formulaText: `[ChụcNgàn(${res[0]}) + Trăm(${res[2]})] + 1 = ${sum} ➔ Loại ${digit}`,
         digit
       };
     }
   },
   {
     id: 'cau_2',
-    name: 'Cầu 2 (Bóng Âm Đơn Vị)',
-    shortName: 'Cầu 2 (Bóng Âm ĐV)',
-    calc: (res) => getBongAm(res[4]),
-    calcFormula: (res) => {
-      const digit = getBongAm(res[4]);
-      return {
-        formulaText: `Bóng âm của Đơn Vị(${res[4]}) ➔ Loại ${digit}`,
-        digit
-      };
-    }
-  },
-  {
-    id: 'cau_3',
-    name: 'Cầu 3 (Bóng Âm Hàng Trăm)',
-    shortName: 'Cầu 3 (Bóng Âm Trăm)',
-    calc: (res) => getBongAm(res[2]),
-    calcFormula: (res) => {
-      const digit = getBongAm(res[2]);
-      return {
-        formulaText: `Bóng âm của Trăm(${res[2]}) ➔ Loại ${digit}`,
-        digit
-      };
-    }
-  },
-  {
-    id: 'cau_4',
-    name: 'Cầu 4 (Tổng 3 Con Đầu)',
-    shortName: 'Cầu 4 (3 Con Đầu)',
-    calc: (res) => ((parseInt(res[0]) + parseInt(res[1]) + parseInt(res[2])) % 10).toString(),
-    calcFormula: (res) => {
-      const sum = parseInt(res[0]) + parseInt(res[1]) + parseInt(res[2]);
-      const digit = (sum % 10).toString();
-      return {
-        formulaText: `ChụcNgàn(${res[0]}) + Ngàn(${res[1]}) + Trăm(${res[2]}) = ${sum} ➔ Loại ${digit}`,
-        digit
-      };
-    }
-  },
-  {
-    id: 'cau_5',
-    name: 'Cầu 5 (Tổng Ngàn + Đơn Vị)',
-    shortName: 'Cầu 5 (Ngàn + ĐV)',
-    calc: (res) => ((parseInt(res[1]) + parseInt(res[4])) % 10).toString(),
-    calcFormula: (res) => {
-      const sum = parseInt(res[1]) + parseInt(res[4]);
-      const digit = (sum % 10).toString();
-      return {
-        formulaText: `Ngàn(${res[1]}) + ĐV(${res[4]}) = ${sum} ➔ Loại ${digit}`,
-        digit
-      };
-    }
-  },
-  {
-    id: 'cau_6',
-    name: 'Cầu 6 (Tổng Trăm + ĐV + 1)',
-    shortName: 'Cầu 6 (Trăm+ĐV+1)',
-    calc: (res) => ((parseInt(res[2]) + parseInt(res[4]) + 1) % 10).toString(),
-    calcFormula: (res) => {
-      const sum = parseInt(res[2]) + parseInt(res[4]) + 1;
-      const digit = (sum % 10).toString();
-      return {
-        formulaText: `[Trăm(${res[2]}) + ĐV(${res[4]})] + 1 = ${sum} ➔ Loại ${digit}`,
-        digit
-      };
-    }
-  },
-  {
-    id: 'cau_7',
-    name: 'Cầu 7 (Tổng Chục Ngàn + ĐV + 1)',
-    shortName: 'Cầu 7 (Vạn+ĐV+1)',
+    name: 'Cầu 2 (Tổng Chục Ngàn + ĐV + 1)',
+    shortName: 'Cầu 2 (Vạn+ĐV+1)',
     calc: (res) => ((parseInt(res[0]) + parseInt(res[4]) + 1) % 10).toString(),
     calcFormula: (res) => {
       const sum = parseInt(res[0]) + parseInt(res[4]) + 1;
@@ -391,9 +323,37 @@ export const CORE_BRIDGES = [
     }
   },
   {
-    id: 'cau_8',
-    name: 'Cầu 8 (Đơn Vị x 2 + 1)',
-    shortName: 'Cầu 8 (ĐV x2 + 1)',
+    id: 'cau_3',
+    name: 'Cầu 3 (Tổng Ngàn + Đơn Vị)',
+    shortName: 'Cầu 3 (Ngàn + ĐV)',
+    calc: (res) => ((parseInt(res[1]) + parseInt(res[4])) % 10).toString(),
+    calcFormula: (res) => {
+      const sum = parseInt(res[1]) + parseInt(res[4]);
+      const digit = (sum % 10).toString();
+      return {
+        formulaText: `Ngàn(${res[1]}) + ĐV(${res[4]}) = ${sum} ➔ Loại ${digit}`,
+        digit
+      };
+    }
+  },
+  {
+    id: 'cau_4',
+    name: 'Cầu 4 (Tổng Trăm + ĐV + 1)',
+    shortName: 'Cầu 4 (Trăm+ĐV+1)',
+    calc: (res) => ((parseInt(res[2]) + parseInt(res[4]) + 1) % 10).toString(),
+    calcFormula: (res) => {
+      const sum = parseInt(res[2]) + parseInt(res[4]) + 1;
+      const digit = (sum % 10).toString();
+      return {
+        formulaText: `[Trăm(${res[2]}) + ĐV(${res[4]})] + 1 = ${sum} ➔ Loại ${digit}`,
+        digit
+      };
+    }
+  },
+  {
+    id: 'cau_5',
+    name: 'Cầu 5 (Đơn Vị x 2 + 1)',
+    shortName: 'Cầu 5 (ĐV x2 + 1)',
     calc: (res) => ((parseInt(res[4]) * 2 + 1) % 10).toString(),
     calcFormula: (res) => {
       const sum = parseInt(res[4]) * 2 + 1;
@@ -405,9 +365,9 @@ export const CORE_BRIDGES = [
     }
   },
   {
-    id: 'cau_9',
-    name: 'Cầu 9 (Đơn Vị x 2 - 1)',
-    shortName: 'Cầu 9 (ĐV x2 - 1)',
+    id: 'cau_6',
+    name: 'Cầu 6 (Đơn Vị x 2 - 1)',
+    shortName: 'Cầu 6 (ĐV x2 - 1)',
     calc: (res) => (((parseInt(res[4]) * 2 - 1) % 10 + 10) % 10).toString(),
     calcFormula: (res) => {
       const raw = parseInt(res[4]) * 2 - 1;
@@ -419,15 +379,55 @@ export const CORE_BRIDGES = [
     }
   },
   {
-    id: 'cau_10',
-    name: 'Cầu 10 (Tổng Chục Ngàn + Trăm + 1)',
-    shortName: 'Cầu 10 (Vạn+Trăm+1)',
-    calc: (res) => ((parseInt(res[0]) + parseInt(res[2]) + 1) % 10).toString(),
+    id: 'cau_7',
+    name: 'Cầu 7 (Tổng 3 Con Cuối)',
+    shortName: 'Cầu 7 (3 Con Cuối)',
+    calc: (res) => ((parseInt(res[2]) + parseInt(res[3]) + parseInt(res[4])) % 10).toString(),
     calcFormula: (res) => {
-      const sum = parseInt(res[0]) + parseInt(res[2]) + 1;
+      const sum = parseInt(res[2]) + parseInt(res[3]) + parseInt(res[4]);
       const digit = (sum % 10).toString();
       return {
-        formulaText: `[ChụcNgàn(${res[0]}) + Trăm(${res[2]})] + 1 = ${sum} ➔ Loại ${digit}`,
+        formulaText: `Trăm(${res[2]}) + Chục(${res[3]}) + ĐV(${res[4]}) = ${sum} ➔ Loại ${digit}`,
+        digit
+      };
+    }
+  },
+  {
+    id: 'cau_8',
+    name: 'Cầu 8 (Bóng Âm Đơn Vị)',
+    shortName: 'Cầu 8 (Bóng Âm ĐV)',
+    calc: (res) => getBongAm(res[4]),
+    calcFormula: (res) => {
+      const digit = getBongAm(res[4]);
+      return {
+        formulaText: `Bóng âm của Đơn Vị(${res[4]}) ➔ Loại ${digit}`,
+        digit
+      };
+    }
+  },
+  {
+    id: 'cau_9',
+    name: 'Cầu 9 (Bóng Âm Hàng Trăm)',
+    shortName: 'Cầu 9 (Bóng Âm Trăm)',
+    calc: (res) => getBongAm(res[2]),
+    calcFormula: (res) => {
+      const digit = getBongAm(res[2]);
+      return {
+        formulaText: `Bóng âm của Trăm(${res[2]}) ➔ Loại ${digit}`,
+        digit
+      };
+    }
+  },
+  {
+    id: 'cau_10',
+    name: 'Cầu 10 (Tổng 3 Con Đầu)',
+    shortName: 'Cầu 10 (3 Con Đầu)',
+    calc: (res) => ((parseInt(res[0]) + parseInt(res[1]) + parseInt(res[2])) % 10).toString(),
+    calcFormula: (res) => {
+      const sum = parseInt(res[0]) + parseInt(res[1]) + parseInt(res[2]);
+      const digit = (sum % 10).toString();
+      return {
+        formulaText: `ChụcNgàn(${res[0]}) + Ngàn(${res[1]}) + Trăm(${res[2]}) = ${sum} ➔ Loại ${digit}`,
         digit
       };
     }
@@ -602,12 +602,12 @@ export const getLoaiSoHauNhi = (rawData) => {
 
   // 2. Xếp hạng cầu từ TOP 1 đến TOP 10
   // Cố định ưu tiên 4 Cầu cốt lõi của người dùng làm TOP 1 -> TOP 4:
-  // TOP 1: cau_10 (Tổng Chục Ngàn + Trăm + 1)
-  // TOP 2: cau_7 (Tổng Chục Ngàn + ĐV + 1)
-  // TOP 3: cau_5 (Tổng Ngàn + Đơn Vị)
-  // TOP 4: cau_6 (Tổng Trăm + ĐV + 1)
-  // Các cầu còn lại (cau_8, cau_9, cau_1, cau_2, cau_3, cau_4) xếp hạng TOP 5 -> TOP 10 theo AI Score / Streak / WinRate
-  const priorityIds = ['cau_10', 'cau_7', 'cau_5', 'cau_6'];
+  // TOP 1: cau_1 (Tổng Chục Ngàn + Trăm + 1)
+  // TOP 2: cau_2 (Tổng Chục Ngàn + ĐV + 1)
+  // TOP 3: cau_3 (Tổng Ngàn + Đơn Vị)
+  // TOP 4: cau_4 (Tổng Trăm + ĐV + 1)
+  // Các cầu còn lại (cau_5 -> cau_10) xếp hạng TOP 5 -> TOP 10 theo AI Score / Streak / WinRate
+  const priorityIds = ['cau_1', 'cau_2', 'cau_3', 'cau_4'];
   
   const top4Priority = priorityIds
     .map(id => bridgeStats.find(b => b.id === id))
