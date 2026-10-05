@@ -33,51 +33,97 @@ const ExecutiveDashboard = ({
   bacNhoInfo
 }) => {
 
+  const wins4 = historyList10.filter(h => h && h.isLoai4Hit).length;
   const wins3 = historyList10.filter(h => h && h.isLoai3Hit).length;
   const total = historyList10.length;
+  const rate4 = total > 0 ? Math.round((wins4 / total) * 100) : 0;
   const rate3 = total > 0 ? Math.round((wins3 / total) * 100) : 0;
 
   const renderStreak10 = () => {
     if (!historyList10 || historyList10.length === 0) return null;
 
     return (
-      <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #334155', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
-          <span style={{ fontSize: '11px', color: '#cbd5e1', fontWeight: 'bold' }}>
-            📊 THỐNG KÊ 10 KỲ (KÈO LOẠI 3 SỐ):
-          </span>
-          <span style={{ fontSize: '11px', fontWeight: 'bold', color: wins3 >= 7 ? '#34d399' : (wins3 >= 5 ? '#fbbf24' : '#f87171'), backgroundColor: 'rgba(0,0,0,0.5)', padding: '2px 8px', borderRadius: '4px', border: '1px solid #475569' }}>
-            {wins3}/{total} Trúng ({rate3}%)
-          </span>
+      <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #334155', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {/* Kèo Loại 4 Số 10 Kỳ (Chủ lực) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+            <span style={{ fontSize: '11px', color: '#fbbf24', fontWeight: 'bold' }}>
+              ⚡ THỐNG KÊ 10 KỲ (KÈO LOẠI 4 SỐ - ĐÁNH 6S):
+            </span>
+            <span style={{ fontSize: '11px', fontWeight: 'bold', color: wins4 >= 7 ? '#34d399' : (wins4 >= 5 ? '#fbbf24' : '#f87171'), backgroundColor: 'rgba(0,0,0,0.5)', padding: '2px 8px', borderRadius: '4px', border: '1px solid #475569' }}>
+              {wins4}/{total} Trúng ({rate4}%)
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {[...historyList10].reverse().map((h, idx) => {
+              const isWin = h.isLoai4Hit;
+              const drawNum = h.drawId ? h.drawId.slice(-3) : (idx + 1);
+              return (
+                <div 
+                  key={idx}
+                  title={`Kỳ ${drawNum}: ${isWin ? 'Trúng (Thắng)' : 'Trượt (Thua)'} | Về Hậu: ${h.resultHau || ''} | Cắt: [${(h.pLoaiSo?.loai4 || []).join(',')}]`}
+                  style={{
+                    backgroundColor: isWin ? '#065f46' : '#991b1b',
+                    border: isWin ? '1px solid #34d399' : '1px solid #ef4444',
+                    color: 'white',
+                    borderRadius: '5px',
+                    padding: '2px 6px',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    boxShadow: isWin ? '0 1px 4px rgba(52, 211, 153, 0.4)' : '0 1px 4px rgba(239, 68, 68, 0.4)'
+                  }}
+                >
+                  <span style={{ color: '#cbd5e1', fontSize: '10px' }}>{drawNum}:</span>
+                  <span style={{ fontSize: '12px' }}>{isWin ? '✅' : '❌'}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
-          {[...historyList10].reverse().map((h, idx) => {
-            const isWin = h.isLoai3Hit;
-            const drawNum = h.drawId ? h.drawId.slice(-3) : (idx + 1);
-            return (
-              <div 
-                key={idx}
-                title={`Kỳ ${drawNum}: ${isWin ? 'Trúng (Thắng)' : 'Trượt (Thua)'} | Về Hậu: ${h.resultHau || ''} | Cắt: [${(h.pLoaiSo?.loai3 || []).join(',')}]`}
-                style={{
-                  backgroundColor: isWin ? '#065f46' : '#991b1b',
-                  border: isWin ? '1px solid #34d399' : '1px solid #ef4444',
-                  color: 'white',
-                  borderRadius: '5px',
-                  padding: '2px 6px',
-                  fontSize: '11px',
-                  fontWeight: 'bold',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '3px',
-                  boxShadow: isWin ? '0 1px 4px rgba(52, 211, 153, 0.4)' : '0 1px 4px rgba(239, 68, 68, 0.4)'
-                }}
-              >
-                <span style={{ color: '#cbd5e1', fontSize: '10px' }}>{drawNum}:</span>
-                <span style={{ fontSize: '12px' }}>{isWin ? '✅' : '❌'}</span>
-              </div>
-            );
-          })}
+        {/* Kèo Loại 3 Số 10 Kỳ */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+            <span style={{ fontSize: '11px', color: '#38bdf8', fontWeight: 'bold' }}>
+              🛡️ THỐNG KÊ 10 KỲ (KÈO LOẠI 3 SỐ - ĐÁNH 7S):
+            </span>
+            <span style={{ fontSize: '11px', fontWeight: 'bold', color: wins3 >= 7 ? '#34d399' : (wins3 >= 5 ? '#fbbf24' : '#f87171'), backgroundColor: 'rgba(0,0,0,0.5)', padding: '2px 8px', borderRadius: '4px', border: '1px solid #475569' }}>
+              {wins3}/{total} Trúng ({rate3}%)
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {[...historyList10].reverse().map((h, idx) => {
+              const isWin = h.isLoai3Hit;
+              const drawNum = h.drawId ? h.drawId.slice(-3) : (idx + 1);
+              return (
+                <div 
+                  key={idx}
+                  title={`Kỳ ${drawNum}: ${isWin ? 'Trúng (Thắng)' : 'Trượt (Thua)'} | Về Hậu: ${h.resultHau || ''} | Cắt: [${(h.pLoaiSo?.loai3 || []).join(',')}]`}
+                  style={{
+                    backgroundColor: isWin ? '#065f46' : '#991b1b',
+                    border: isWin ? '1px solid #34d399' : '1px solid #ef4444',
+                    color: 'white',
+                    borderRadius: '5px',
+                    padding: '2px 6px',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    boxShadow: isWin ? '0 1px 4px rgba(52, 211, 153, 0.4)' : '0 1px 4px rgba(239, 68, 68, 0.4)'
+                  }}
+                >
+                  <span style={{ color: '#cbd5e1', fontSize: '10px' }}>{drawNum}:</span>
+                  <span style={{ fontSize: '12px' }}>{isWin ? '✅' : '❌'}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     );
@@ -191,181 +237,177 @@ const ExecutiveDashboard = ({
           <div style={{ backgroundColor: 'rgba(30, 41, 59, 0.7)', padding: '14px', borderRadius: '12px', border: '1px solid #10b981', marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             
             {/* ========================================================================= */}
-            {/* PHẦN 1: 🛡️ TỔNG HỢP KÈO LOẠI 3 SỐ & 4 SỐ (ĐƯA LÊN TRÊN CÙNG) */}
+            {/* PHẦN 1: 🛡️ TỔNG HỢP KÈO LOẠI 4 SỐ & 3 SỐ (TOP 1 ➔ TOP 4 CẦU ĐỘNG) */}
             {/* ========================================================================= */}
-            {/* 1. MỤC LOẠI 3 SỐ */}
-            <div style={{ backgroundColor: '#0f172a', padding: '12px', borderRadius: '10px', border: '1px solid #ef4444' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ color: '#f87171', fontWeight: 'bold', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <ShieldCheck size={18} color="#ef4444" /> 🛡️ TỔNG HỢP KÈO LOẠI 3 SỐ:
-                </span>
-                <span style={{ color: '#9ca3af', fontSize: '11px' }}>Ưu tiên số nhiều cầu trùng ({loaiSo?.loai3?.length || 0} số)</span>
-              </div>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {/* 3 Số Bỏ */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '0.9rem', width: '95px' }}>❌ LOẠI 3 SỐ:</span>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    {(loaiSo?.loai3 || []).length > 0 ? (
-                      loaiSo.loai3.map((n, i) => {
-                        const count = loaiSo?.digitCounts ? loaiSo.digitCounts[n] : 0;
-                        return (
-                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: '#ef4444', padding: '2px 8px', borderRadius: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-                            <span style={{ color: 'white', fontWeight: '900', fontSize: '1.25rem', textDecoration: 'line-through' }}>
-                              {n}
-                            </span>
-                            {count > 0 && (
-                              <span style={{ color: '#fee2e2', fontSize: '10.5px', fontWeight: 'bold', backgroundColor: 'rgba(0,0,0,0.35)', padding: '1px 5px', borderRadius: '4px' }}>
-                                {count} cầu
-                              </span>
-                            )}
-                          </div>
-                        );
-                      })
-                    ) : (
-                      <span style={{ color: '#94a3b8', fontSize: '12px', fontStyle: 'italic' }}>Chờ thiết lập cầu mới...</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Nút copy dàn 49 số & dàn 9 số */}
-                {(loaiSo?.dan49 || []).length > 0 && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
-                    {renderCopyButton(loaiSo?.dan49 || [], "Dàn 49 Số (Đánh 7 Số)")}
-                    {renderCopyButton(loaiSo?.dan9 || [], "🎯 Dàn 9 Số (Bắt 3 Số Loại)")}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* 2. MỤC LOẠI 4 SỐ */}
-            <div style={{ backgroundColor: '#0f172a', padding: '12px', borderRadius: '10px', border: '1px solid #f59e0b' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            
+            {/* 1. MỤC LOẠI 4 SỐ (KÈO CHỦ LỰC) */}
+            <div style={{ backgroundColor: '#0f172a', padding: '12px', borderRadius: '10px', border: '1.5px solid #f59e0b', boxShadow: '0 0 10px rgba(245, 158, 11, 0.2)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '4px' }}>
                 <span style={{ color: '#fbbf24', fontWeight: 'bold', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Flame size={18} color="#f59e0b" /> ⚡ TỔNG HỢP KÈO LOẠI 4 SỐ:
+                  <Flame size={18} color="#f59e0b" /> ⚡ TỔNG HỢP KÈO LOẠI 4 SỐ (TOP 1 ➔ TOP 4 CẦU ĐỘNG):
                 </span>
-                <span style={{ color: '#9ca3af', fontSize: '11px' }}>Vốn ít (Lãi to - {loaiSo?.loai4?.length || 0} số)</span>
+                <span style={{ backgroundColor: '#78350f', color: '#fde68a', fontSize: '11px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '4px', border: '1px solid #b45309' }}>
+                  Đánh 6 Số (Dàn 36 Số - Siêu Lãi)
+                </span>
               </div>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {/* 4 Số Bỏ */}
+                {/* 4 Số Bỏ Cụ Thể Theo Từng TOP */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '0.9rem', width: '95px' }}>❌ LOẠI 4 SỐ:</span>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    {(loaiSo?.loai4 || []).length > 0 ? (
-                      loaiSo.loai4.map((n, i) => {
-                        const count = loaiSo?.digitCounts ? loaiSo.digitCounts[n] : 0;
-                        return (
-                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: '#ef4444', padding: '2px 8px', borderRadius: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-                            <span style={{ color: 'white', fontWeight: '900', fontSize: '1.25rem', textDecoration: 'line-through' }}>
-                              {n}
-                            </span>
-                            {count > 0 && (
-                              <span style={{ color: '#fee2e2', fontSize: '10.5px', fontWeight: 'bold', backgroundColor: 'rgba(0,0,0,0.35)', padding: '1px 5px', borderRadius: '4px' }}>
-                                {count} cầu
-                              </span>
-                            )}
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    {(loaiSo?.loai4Details || []).length > 0 ? (
+                      loaiSo.loai4Details.map((item, i) => (
+                        <div 
+                          key={i} 
+                          title={`${item.rankBadge}: ${item.bridgeName} | Trạng thái: ${item.statusLabel} | Điểm AI: ${item.aiScore}đ`}
+                          style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '5px', 
+                            backgroundColor: i === 0 ? '#b91c1c' : '#991b1b', 
+                            padding: '3px 8px', 
+                            borderRadius: '6px', 
+                            boxShadow: i === 0 ? '0 0 8px rgba(239, 68, 68, 0.8)' : '0 2px 4px rgba(0,0,0,0.5)',
+                            border: i === 0 ? '1px solid #f87171' : '1px solid #dc2626'
+                          }}
+                        >
+                          <span style={{ color: 'white', fontWeight: '900', fontSize: '1.25rem', textDecoration: 'line-through' }}>
+                            {item.digit}
+                          </span>
+                          <div style={{ display: 'flex', flexDirection: 'column', fontSize: '9.5px', lineHeight: '1.1' }}>
+                            <span style={{ color: i === 0 ? '#fef08a' : '#fecaca', fontWeight: 'bold' }}>{item.rankBadge}</span>
+                            <span style={{ color: '#cbd5e1' }}>{item.bridgeName}</span>
                           </div>
-                        );
-                      })
-                    ) : (
-                      <span style={{ color: '#94a3b8', fontSize: '12px', fontStyle: 'italic' }}>Chờ thiết lập cầu mới...</span>
-                    )}
+                        </div>
+                      ))
+                    ) : (loaiSo?.loai4 || []).map((n, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: '#ef4444', padding: '2px 8px', borderRadius: '6px' }}>
+                        <span style={{ color: 'white', fontWeight: '900', fontSize: '1.25rem', textDecoration: 'line-through' }}>{n}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
                 {/* Nút copy dàn 36 số & dàn 16 số */}
                 {(loaiSo?.dan36 || []).length > 0 && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
-                    {renderCopyButton(loaiSo?.dan36 || [], "Dàn 36 Số (Đánh 6 Số)")}
+                    {renderCopyButton(loaiSo?.dan36 || [], "Dàn 36 Số Hậu Nhị (Đánh 6 Số Giữ)")}
                     {renderCopyButton(loaiSo?.dan16 || [], "⚡ Dàn 16 Số (Bắt 4 Số Loại)")}
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Thống kê 10 kỳ gần nhất */}
+            {/* 2. MỤC LOẠI 3 SỐ (AN TOÀN CAO) */}
+            <div style={{ backgroundColor: '#0f172a', padding: '12px', borderRadius: '10px', border: '1px solid #38bdf8' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '4px' }}>
+                <span style={{ color: '#38bdf8', fontWeight: 'bold', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <ShieldCheck size={18} color="#38bdf8" /> 🛡️ TỔNG HỢP KÈO LOẠI 3 SỐ (AN TOÀN CAO):
+                </span>
+                <span style={{ backgroundColor: '#0c4a6e', color: '#bae6fd', fontSize: '11px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '4px', border: '1px solid #0284c7' }}>
+                  Đánh 7 Số (Dàn 49 Số)
+                </span>
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {/* 3 Số Bỏ Cụ Thể */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '0.9rem', width: '95px' }}>❌ LOẠI 3 SỐ:</span>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    {(loaiSo?.loai3Details || []).length > 0 ? (
+                      loaiSo.loai3Details.map((item, i) => (
+                        <div 
+                          key={i} 
+                          style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '5px', 
+                            backgroundColor: '#991b1b', 
+                            padding: '3px 8px', 
+                            borderRadius: '6px', 
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.5)',
+                            border: '1px solid #ef4444'
+                          }}
+                        >
+                          <span style={{ color: 'white', fontWeight: '900', fontSize: '1.25rem', textDecoration: 'line-through' }}>
+                            {item.digit}
+                          </span>
+                          <div style={{ display: 'flex', flexDirection: 'column', fontSize: '9.5px', lineHeight: '1.1' }}>
+                            <span style={{ color: '#fef08a', fontWeight: 'bold' }}>{item.rankBadge}</span>
+                            <span style={{ color: '#cbd5e1' }}>{item.bridgeName}</span>
+                          </div>
+                        </div>
+                      ))
+                    ) : (loaiSo?.loai3 || []).map((n, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: '#ef4444', padding: '2px 8px', borderRadius: '6px' }}>
+                        <span style={{ color: 'white', fontWeight: '900', fontSize: '1.25rem', textDecoration: 'line-through' }}>{n}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Nút copy dàn 49 số & dàn 9 số */}
+                {(loaiSo?.dan49 || []).length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
+                    {renderCopyButton(loaiSo?.dan49 || [], "Dàn 49 Số Hậu Nhị (Đánh 7 Số Giữ)")}
+                    {renderCopyButton(loaiSo?.dan9 || [], "🎯 Dàn 9 Số (Bắt 3 Số Loại)")}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Thống kê 10 kỳ gần nhất cho cả 2 kèo */}
             {renderStreak10()}
 
             {/* ========================================================================= */}
-            {/* PHẦN 2: ⭐ CÁC CẦU KHUYÊN DÙNG ĐANG THÔNG (TÁCH TỪNG DÒNG RÕ RÀNG) */}
+            {/* PHẦN 2: 🟢 BẢNG XẾP HẠNG 9 CẦU BẮT SỐ ĐỘNG (TOP 1 ➔ TOP 9) */}
             {/* ========================================================================= */}
-            {loaiSo?.recommendedBridges && loaiSo.recommendedBridges.length > 0 && (
-              <div style={{
-                backgroundColor: 'rgba(6, 78, 59, 0.45)',
-                border: '1.5px solid #10b981',
-                borderRadius: '10px',
-                padding: '10px 12px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-                marginTop: '4px',
-                boxShadow: '0 0 12px rgba(16, 185, 129, 0.25)'
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(16, 185, 129, 0.3)', paddingBottom: '6px' }}>
-                  <span style={{ color: '#6ee7b7', fontWeight: 'bold', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    ⭐ CÁC CẦU KHUYÊN DÙNG ĐANG THÔNG (≥ 3 TAY):
-                  </span>
-                  <span style={{ backgroundColor: '#10b981', color: '#022c22', fontWeight: '900', fontSize: '11px', padding: '2px 8px', borderRadius: '9999px' }}>
-                    {loaiSo.recommendedBridges.length} Cầu Đang Ăn
-                  </span>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {[...loaiSo.recommendedBridges].sort((a, b) => b.streak - a.streak).map((b, idx) => (
-                    <div 
-                      key={idx}
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        backgroundColor: '#0f172a',
-                        padding: '6px 10px',
-                        borderRadius: '6px',
-                        border: '1px solid #1e293b',
-                        flexWrap: 'wrap',
-                        gap: '4px'
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ color: '#38bdf8', fontSize: '11px', fontWeight: 'bold' }}>#{idx + 1}</span>
-                        <span style={{ color: '#f1f5f9', fontSize: '12.5px', fontWeight: 'bold' }}>{b.name || b.shortName}</span>
-                      </div>
-
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ backgroundColor: '#065f46', color: '#34d399', border: '1px solid #059669', fontSize: '11px', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px' }}>
-                          🔥 Thông {b.streak} tay ({b.winRate}%)
-                        </span>
-                        <span style={{ backgroundColor: '#ef4444', color: 'white', fontSize: '11.5px', fontWeight: '900', padding: '2px 8px', borderRadius: '4px', textDecoration: 'line-through', boxShadow: '0 1px 3px rgba(0,0,0,0.4)' }}>
-                          Loại {b.predDigit}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#064e3b', padding: '8px 12px', borderRadius: '8px', border: '1px solid #059669', flexWrap: 'wrap', gap: '4px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#6ee7b7', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  🟢 BẢNG XẾP HẠNG 9 CẦU BẮT SỐ ĐỘNG (TOP 1 ➔ TOP 9)
+                </span>
+                <span style={{ fontSize: '11px', color: '#a7f3d0' }}>AI Tự Động Thích Ứng Theo Kỳ</span>
               </div>
-            )}
-
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#064e3b', padding: '8px 12px', borderRadius: '8px', border: '1px solid #059669', marginTop: '4px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#6ee7b7', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                🟢 BẢNG CẦU BẮT SỐ CỐT LÕI (DANH SÁCH CẦU)
-              </span>
-              <span style={{ fontSize: '11px', color: '#a7f3d0' }}>Chuẩn Lotobet</span>
+              <div style={{ fontSize: '11px', color: '#94a3b8', paddingLeft: '4px', fontStyle: 'italic' }}>
+                * AI phân tích chuỗi thông, khả năng phục hồi nhịp (trượt 1 ăn lại ➔ TOP 1) và độ bền chuẩn xác.
+              </div>
             </div>
 
-            {/* Render Cards cho các Cầu */}
+            {/* Render Cards cho 9 Cầu đã Xếp Hạng */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {(loaiSo?.bridgeStats || []).length > 0 ? (
                 loaiSo.bridgeStats.map((b, idx) => {
-                  const isHot = b.isRecommended; // streak >= 3 tay
+                  const isTop1 = b.rank === 1;
+                  const isTop2 = b.rank === 2;
+                  const isTop3 = b.rank === 3;
+                  const isTop4 = b.rank === 4;
+                  const isTop = isTop1 || isTop2 || isTop3 || isTop4;
+
+                  let borderColor = '#334155';
+                  let bgColor = '#0f172a';
+                  if (isTop1) {
+                    borderColor = '#facc15';
+                    bgColor = 'rgba(120, 53, 15, 0.35)';
+                  } else if (isTop2) {
+                    borderColor = '#38bdf8';
+                    bgColor = 'rgba(12, 74, 110, 0.35)';
+                  } else if (isTop3) {
+                    borderColor = '#fb923c';
+                    bgColor = 'rgba(124, 45, 18, 0.3)';
+                  } else if (isTop4) {
+                    borderColor = '#10b981';
+                    bgColor = 'rgba(6, 78, 59, 0.35)';
+                  }
+
                   return (
                     <div 
                       key={idx}
                       style={{
-                        backgroundColor: isHot ? 'rgba(6, 78, 59, 0.45)' : '#0f172a',
-                        border: isHot ? '2px solid #10b981' : '1px solid #334155',
-                        boxShadow: isHot ? '0 0 14px rgba(16, 185, 129, 0.35)' : 'none',
+                        backgroundColor: bgColor,
+                        border: isTop ? `1.5px solid ${borderColor}` : '1px solid #334155',
+                        boxShadow: isTop1 ? '0 0 14px rgba(250, 204, 21, 0.35)' : (isTop ? `0 0 8px ${borderColor}40` : 'none'),
                         borderRadius: '10px',
                         padding: '10px 12px',
                         display: 'flex',
@@ -376,23 +418,43 @@ const ExecutiveDashboard = ({
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontWeight: 'bold', fontSize: '13px', color: isHot ? '#6ee7b7' : '#f1f5f9' }}>
-                            🎯 {b.name}
+                          <span style={{ 
+                            backgroundColor: isTop1 ? '#ca8a04' : (isTop2 ? '#0284c7' : (isTop3 ? '#c2410c' : (isTop4 ? '#059669' : '#334155'))), 
+                            color: isTop1 ? 'black' : 'white', 
+                            fontWeight: '900', 
+                            fontSize: '11px', 
+                            padding: '2px 8px', 
+                            borderRadius: '6px',
+                            boxShadow: isTop ? '0 1px 4px rgba(0,0,0,0.4)' : 'none'
+                          }}>
+                            {b.rankBadge}
                           </span>
-                          {isHot ? (
-                            <span style={{ backgroundColor: '#10b981', color: '#022c22', fontWeight: '900', fontSize: '10px', padding: '2px 8px', borderRadius: '9999px', boxShadow: '0 0 8px rgba(16, 185, 129, 0.8)' }}>
-                              ⭐ KHUYÊN DÙNG (THÔNG {b.streak} TAY)
+                          
+                          <span style={{ fontWeight: 'bold', fontSize: '13px', color: isTop ? '#f8fafc' : '#cbd5e1' }}>
+                            {b.name}
+                          </span>
+
+                          {/* Tag Trạng Thái Nhịp Cầu */}
+                          {b.is1MissRecovery && (
+                            <span style={{ backgroundColor: '#0284c7', color: 'white', fontWeight: '900', fontSize: '10px', padding: '2px 8px', borderRadius: '9999px', boxShadow: '0 0 8px rgba(56, 189, 248, 0.8)' }}>
+                              ⚡ VỪA HỒI NHỊP (TRƯỢT 1 NỐI LẠI)
                             </span>
-                          ) : (
-                            <span style={{ backgroundColor: '#334155', color: '#94a3b8', fontSize: '10px', padding: '2px 6px', borderRadius: '4px' }}>
-                              Ăn {b.streak} tay ({b.winRate}%)
+                          )}
+                          {!b.is1MissRecovery && b.streak >= 3 && (
+                            <span style={{ backgroundColor: '#10b981', color: '#022c22', fontWeight: '900', fontSize: '10px', padding: '2px 8px', borderRadius: '9999px', boxShadow: '0 0 8px rgba(16, 185, 129, 0.8)' }}>
+                              🔥 THÔNG {b.streak} TAY
+                            </span>
+                          )}
+                          {!b.is1MissRecovery && b.isJust1Miss && (
+                            <span style={{ backgroundColor: '#d97706', color: 'white', fontWeight: 'bold', fontSize: '10px', padding: '2px 6px', borderRadius: '4px' }}>
+                              🛡️ BỀN BỈ (LỠ 1 NHỊP)
                             </span>
                           )}
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '12px' }}>❌ LOẠI:</span>
-                          <span style={{ backgroundColor: '#ef4444', color: 'white', fontWeight: '900', fontSize: '1.2rem', padding: '1px 10px', borderRadius: '6px', textDecoration: 'line-through', boxShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+                          <span style={{ backgroundColor: '#ef4444', color: 'white', fontWeight: '900', fontSize: '1.25rem', padding: '1px 10px', borderRadius: '6px', textDecoration: 'line-through', boxShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
                             {b.predDigit}
                           </span>
                         </div>
@@ -402,8 +464,9 @@ const ExecutiveDashboard = ({
                         <div style={{ color: '#38bdf8', fontWeight: '500' }}>
                           📐 {b.formulaText}
                         </div>
-                        <div style={{ color: '#94a3b8', fontSize: '11px' }}>
-                          Tỷ lệ ăn: <span style={{ color: b.winRate >= 80 ? '#34d399' : '#fbbf24', fontWeight: 'bold' }}>{b.totalWins}/{b.totalChecked} ({b.winRate}%)</span>
+                        <div style={{ color: '#94a3b8', fontSize: '11px', display: 'flex', gap: '8px' }}>
+                          <span>Tỷ lệ ăn: <strong style={{ color: b.winRate >= 80 ? '#34d399' : '#fbbf24' }}>{b.totalWins}/{b.totalChecked} ({b.winRate}%)</strong></span>
+                          <span>• Điểm AI: <strong style={{ color: '#facc15' }}>{b.aiScore}đ</strong></span>
                         </div>
                       </div>
 
@@ -433,7 +496,7 @@ const ExecutiveDashboard = ({
                 })
               ) : (
                 <div style={{ backgroundColor: '#0f172a', border: '1px dashed #334155', borderRadius: '8px', padding: '16px', textAlign: 'center', color: '#94a3b8', fontSize: '12.5px', fontStyle: 'italic' }}>
-                  Chưa có công thức cầu nào. Hãy gửi các công thức cầu mới của bạn để AI nạp vào hệ thống!
+                  Chưa có dữ liệu kỳ quay để phân tích cầu. Hãy nhập kết quả để AI tính toán!
                 </div>
               )}
             </div>
@@ -588,12 +651,12 @@ const ExecutiveDashboard = ({
                 </div>
               )}
 
-              {/* Đối chiếu Cầu Bắt Số Kỳ Vừa Xổ */}
+              {/* Đối chiếu 9 Cầu Bắt Số Kỳ Vừa Xổ */}
               {historyCheck.pLoaiSo?.bridgeStats && historyCheck.pLoaiSo.bridgeStats.length > 0 && (
                 <div style={{ backgroundColor: '#0f172a', padding: '12px', borderRadius: '10px', border: '1px solid #10b981', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
                     <span style={{ fontWeight: 'bold', color: '#34d399', fontSize: '0.9rem' }}>
-                      🟢 ĐỐI CHIẾU CÁC CẦU KỲ VỪA XỔ:
+                      🟢 ĐỐI CHIẾU 9 CẦU KỲ VỪA XỔ:
                     </span>
                     <span style={{ fontSize: '11px', color: '#9ca3af' }}>Về Hậu Nhị: <strong style={{ color: '#facc15' }}>{historyCheck.resultHau}</strong></span>
                   </div>
@@ -602,8 +665,13 @@ const ExecutiveDashboard = ({
                     {historyCheck.pLoaiSo.bridgeStats.map((b, idx) => {
                       const isWin = !historyCheck.resultHau?.includes(b.predDigit);
                       return (
-                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: isWin ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)', padding: '6px 10px', borderRadius: '6px', border: isWin ? '1px solid #059669' : '1px solid #ef4444' }}>
-                          <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#f1f5f9' }}>{b.name}</span>
+                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: isWin ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)', padding: '6px 10px', borderRadius: '6px', border: isWin ? '1px solid #059669' : '1px solid #ef4444', flexWrap: 'wrap', gap: '4px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ backgroundColor: b.rank === 1 ? '#ca8a04' : (b.rank === 2 ? '#0284c7' : (b.rank === 3 ? '#c2410c' : '#334155')), color: b.rank === 1 ? 'black' : 'white', fontSize: '10px', fontWeight: 'bold', padding: '1px 6px', borderRadius: '4px' }}>
+                              {b.rankBadge}
+                            </span>
+                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#f1f5f9' }}>{b.name}</span>
+                          </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <span style={{ fontSize: '11px', color: '#94a3b8' }}>Cắt: [{b.predDigit}]</span>
                             <span style={{ fontSize: '11px', fontWeight: 'bold', color: isWin ? '#34d399' : '#f87171' }}>

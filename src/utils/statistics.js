@@ -10,13 +10,17 @@ export const getBongDuong = (d) => ({
   '4': '9', '9': '4'
 }[d.toString()]);
 
-export const getBongAm = (d) => ({
-  '0': '7', '7': '0',
-  '1': '4', '4': '1',
-  '2': '9', '9': '2',
-  '3': '6', '6': '3',
-  '5': '8', '8': '5'
-}[d.toString()]);
+export const getBongAm = (d) => {
+  const map = {
+    '0': '7', '7': '0',
+    '1': '4', '4': '1',
+    '2': '9', '9': '2',
+    '3': '6', '6': '3',
+    '5': '8', '8': '5',
+    '4': '1', '6': '3', '8': '5', '9': '2'
+  };
+  return map[d.toString()] || '0';
+};
 
 // Bộ số trả nhau đối ứng Kubet: 0<->9, 1<->7, 2<->5, 3<->6, 4<->8
 export const BO_TRA_NHAU = {
@@ -229,11 +233,134 @@ export const predictTXCL = (data) => {
 };
 
 // ============================================================================
-// HỆ THỐNG CẦU BẮT SỐ CỐT LÕI (SẴN SÀNG THIẾT LẬP CÔNG THỨC MỚI TỪ ĐẦU)
+// HỆ THỐNG 9 CẦU BẮT SỐ LOẠI HẬU NHỊ & THUẬT TOÁN XẾP HẠNG ĐỘNG AI
 // ============================================================================
 
 export const CORE_BRIDGES = [
-  // Danh sách công thức cầu đã được làm sạch, sẵn sàng nạp công thức mới từ người dùng.
+  {
+    id: 'cau_1',
+    name: 'Cầu 1 (Tổng 3 Con Cuối)',
+    shortName: 'Cầu 1 (3 Con Cuối)',
+    calc: (res) => ((parseInt(res[2]) + parseInt(res[3]) + parseInt(res[4])) % 10).toString(),
+    calcFormula: (res) => {
+      const sum = parseInt(res[2]) + parseInt(res[3]) + parseInt(res[4]);
+      const digit = (sum % 10).toString();
+      return {
+        formulaText: `Trăm(${res[2]}) + Chục(${res[3]}) + ĐV(${res[4]}) = ${sum} ➔ Loại ${digit}`,
+        digit
+      };
+    }
+  },
+  {
+    id: 'cau_2',
+    name: 'Cầu 2 (Bóng Âm Đơn Vị)',
+    shortName: 'Cầu 2 (Bóng Âm ĐV)',
+    calc: (res) => getBongAm(res[4]),
+    calcFormula: (res) => {
+      const digit = getBongAm(res[4]);
+      return {
+        formulaText: `Bóng âm của Đơn Vị(${res[4]}) ➔ Loại ${digit}`,
+        digit
+      };
+    }
+  },
+  {
+    id: 'cau_3',
+    name: 'Cầu 3 (Bóng Âm Hàng Trăm)',
+    shortName: 'Cầu 3 (Bóng Âm Trăm)',
+    calc: (res) => getBongAm(res[2]),
+    calcFormula: (res) => {
+      const digit = getBongAm(res[2]);
+      return {
+        formulaText: `Bóng âm của Trăm(${res[2]}) ➔ Loại ${digit}`,
+        digit
+      };
+    }
+  },
+  {
+    id: 'cau_4',
+    name: 'Cầu 4 (Tổng 3 Con Đầu)',
+    shortName: 'Cầu 4 (3 Con Đầu)',
+    calc: (res) => ((parseInt(res[0]) + parseInt(res[1]) + parseInt(res[2])) % 10).toString(),
+    calcFormula: (res) => {
+      const sum = parseInt(res[0]) + parseInt(res[1]) + parseInt(res[2]);
+      const digit = (sum % 10).toString();
+      return {
+        formulaText: `ChụcNgàn(${res[0]}) + Ngàn(${res[1]}) + Trăm(${res[2]}) = ${sum} ➔ Loại ${digit}`,
+        digit
+      };
+    }
+  },
+  {
+    id: 'cau_5',
+    name: 'Cầu 5 (Tổng Ngàn + Đơn Vị)',
+    shortName: 'Cầu 5 (Ngàn + ĐV)',
+    calc: (res) => ((parseInt(res[1]) + parseInt(res[4])) % 10).toString(),
+    calcFormula: (res) => {
+      const sum = parseInt(res[1]) + parseInt(res[4]);
+      const digit = (sum % 10).toString();
+      return {
+        formulaText: `Ngàn(${res[1]}) + ĐV(${res[4]}) = ${sum} ➔ Loại ${digit}`,
+        digit
+      };
+    }
+  },
+  {
+    id: 'cau_6',
+    name: 'Cầu 6 (Tổng Trăm + ĐV + 1)',
+    shortName: 'Cầu 6 (Trăm+ĐV+1)',
+    calc: (res) => ((parseInt(res[2]) + parseInt(res[4]) + 1) % 10).toString(),
+    calcFormula: (res) => {
+      const sum = parseInt(res[2]) + parseInt(res[4]) + 1;
+      const digit = (sum % 10).toString();
+      return {
+        formulaText: `[Trăm(${res[2]}) + ĐV(${res[4]})] + 1 = ${sum} ➔ Loại ${digit}`,
+        digit
+      };
+    }
+  },
+  {
+    id: 'cau_7',
+    name: 'Cầu 7 (Tổng Chục Ngàn + Trăm + 1)',
+    shortName: 'Cầu 7 (Vạn+Trăm+1)',
+    calc: (res) => ((parseInt(res[0]) + parseInt(res[2]) + 1) % 10).toString(),
+    calcFormula: (res) => {
+      const sum = parseInt(res[0]) + parseInt(res[2]) + 1;
+      const digit = (sum % 10).toString();
+      return {
+        formulaText: `[ChụcNgàn(${res[0]}) + Trăm(${res[2]})] + 1 = ${sum} ➔ Loại ${digit}`,
+        digit
+      };
+    }
+  },
+  {
+    id: 'cau_8',
+    name: 'Cầu 8 (Đơn Vị x 2 + 1)',
+    shortName: 'Cầu 8 (ĐV x2 + 1)',
+    calc: (res) => ((parseInt(res[4]) * 2 + 1) % 10).toString(),
+    calcFormula: (res) => {
+      const sum = parseInt(res[4]) * 2 + 1;
+      const digit = (sum % 10).toString();
+      return {
+        formulaText: `[ĐV(${res[4]}) x 2] + 1 = ${sum} ➔ Loại ${digit}`,
+        digit
+      };
+    }
+  },
+  {
+    id: 'cau_9',
+    name: 'Cầu 9 (Đơn Vị x 2 - 1)',
+    shortName: 'Cầu 9 (ĐV x2 - 1)',
+    calc: (res) => (((parseInt(res[4]) * 2 - 1) % 10 + 10) % 10).toString(),
+    calcFormula: (res) => {
+      const raw = parseInt(res[4]) * 2 - 1;
+      const digit = (((raw % 10) + 10) % 10).toString();
+      return {
+        formulaText: `[ĐV(${res[4]}) x 2] - 1 = ${raw} ➔ Loại ${digit}`,
+        digit
+      };
+    }
+  }
 ];
 
 export const FIVE_BRIDGES = CORE_BRIDGES;
@@ -244,9 +371,12 @@ export const getLoaiSoHauNhi = (rawData) => {
   if (!rawData || rawData.length === 0 || CORE_BRIDGES.length === 0) {
     return {
       bridgeStats: [],
+      rankedBridges: [],
       recommendedBridges: [],
       digitCounts: {},
       digitBridges: {},
+      loai4Details: [],
+      loai3Details: [],
       loai3: [],
       giu7: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
       loai4: [],
@@ -265,7 +395,7 @@ export const getLoaiSoHauNhi = (rawData) => {
   const nDraws = ascData.length;
   const lastDraw = ascData[nDraws - 1].Result;
 
-  // 1. Phân tích 7 CẦU THUẬN qua lịch sử các kỳ
+  // 1. Phân tích 9 CẦU qua lịch sử các kỳ
   const bridgeStats = CORE_BRIDGES.map(bridge => {
     let streak = 0;
     let hitStreak = 0;
@@ -310,8 +440,49 @@ export const getLoaiSoHauNhi = (rawData) => {
     }
 
     const { formulaText, digit } = bridge.calcFormula(lastDraw);
-    const winRate = totalChecked > 0 ? Math.round((totalWins / totalChecked) * 100) : 70;
-    const isRecommended = streak >= 3;
+    const winRate = totalChecked > 0 ? Math.round((totalWins / totalChecked) * 100) : 75;
+
+    // Phân tích trạng thái nhịp AI:
+    // 1. Phục hồi 1 kỳ trượt (1-Miss Recovery): kỳ gần nhất thắng, kỳ trước đó trượt, và trước đó nữa lại thắng
+    const is1MissRecovery = history10.length >= 2 && history10[0]?.isWin && (!history10[1]?.isWin) && (history10.length < 3 || history10[2]?.isWin);
+    
+    // 2. Cầu bền bỉ vừa lỡ nhịp 1 kỳ (đang chờ hồi): kỳ gần nhất trượt, nhưng trước đó ăn thông dài >= 2 tay
+    const isJust1Miss = history10.length >= 2 && (!history10[0]?.isWin) && history10[1]?.isWin && (history10.length < 3 || history10[2]?.isWin);
+
+    // Tính điểm AI Động (Dynamic AI Score)
+    let aiScore = 0;
+    // Điểm tỷ lệ thắng (0 -> 50)
+    aiScore += (winRate * 0.5);
+    // Điểm chuỗi thông (mỗi tay +12)
+    aiScore += (streak * 12);
+
+    // Thưởng điểm phục hồi 1-miss recovery (+45đ - Ưu tiên hàng đầu)
+    if (is1MissRecovery) {
+      aiScore += 45;
+    }
+    // Thưởng điểm bền bỉ nếu vừa lỡ 1 nhịp sau chuỗi dài (+20đ)
+    if (isJust1Miss && winRate >= 70) {
+      aiScore += 20;
+    }
+    // Thưởng streak >= 3 (+15đ)
+    if (streak >= 3) {
+      aiScore += 15;
+    }
+
+    let statusType = 'normal';
+    let statusLabel = `Ăn ${streak} tay (${winRate}%)`;
+    if (is1MissRecovery) {
+      statusType = 'recovery';
+      statusLabel = `⚡ Hồi nhịp (Trượt 1 nối lại)`;
+    } else if (streak >= 3) {
+      statusType = 'hot';
+      statusLabel = `🔥 Thông ${streak} tay (${winRate}%)`;
+    } else if (isJust1Miss) {
+      statusType = 'resilient';
+      statusLabel = `🛡️ Bền bỉ (Lỡ 1 nhịp)`;
+    }
+
+    const isRecommended = streak >= 3 || is1MissRecovery || (streak >= 2 && winRate >= 80);
 
     return {
       id: bridge.id,
@@ -322,6 +493,11 @@ export const getLoaiSoHauNhi = (rawData) => {
       totalWins,
       totalChecked,
       winRate,
+      aiScore,
+      is1MissRecovery,
+      isJust1Miss,
+      statusType,
+      statusLabel,
       isRecommended,
       predDigit: digit,
       formulaText,
@@ -329,45 +505,75 @@ export const getLoaiSoHauNhi = (rawData) => {
     };
   });
 
-  // 2. Chấm điểm theo TẦN SUẤT CÁC CẦU BÁO TRÙNG NHAU (Nhiều cầu báo loại nhất -> Ưu tiên loại trước)
-  const digitCounts = {};
-  const digitWinRateSum = {};
-  const digitBridges = {};
+  // 2. Xếp hạng cầu từ TOP 1 đến TOP 9 dựa trên AI Score
+  const rankedBridges = [...bridgeStats].sort((a, b) => {
+    if (b.aiScore !== a.aiScore) return b.aiScore - a.aiScore;
+    if (b.streak !== a.streak) return b.streak - a.streak;
+    if (b.winRate !== a.winRate) return b.winRate - a.winRate;
+    return 0;
+  }).map((b, idx) => ({
+    ...b,
+    rank: idx + 1,
+    rankBadge: idx === 0 ? '🥇 TOP 1' : (idx === 1 ? '🥈 TOP 2' : (idx === 2 ? '🥉 TOP 3' : (idx === 3 ? '🎖️ TOP 4' : `TOP ${idx + 1}`)))
+  }));
 
-  for (let i = 0; i < 10; i++) {
-    const d = i.toString();
-    digitCounts[d] = 0;
-    digitWinRateSum[d] = 0;
-    digitBridges[d] = [];
+  // 3. Trích xuất 4 SỐ LOẠI TỐI ƯU (TOP 1, TOP 2, TOP 3, TOP 4)
+  // Ưu tiên chọn từ các Cầu dẫn đầu (TOP 1 -> TOP 9)
+  const selectedLoai4 = [];
+  const loai4Details = [];
+  const seenDigits = new Set();
+
+  for (const b of rankedBridges) {
+    if (selectedLoai4.length >= 4) break;
+    const d = b.predDigit;
+    if (d !== undefined && d !== null && !seenDigits.has(d)) {
+      seenDigits.add(d);
+      selectedLoai4.push(d);
+      loai4Details.push({
+        digit: d,
+        rank: b.rank,
+        rankBadge: b.rankBadge,
+        bridgeName: b.shortName,
+        statusLabel: b.statusLabel,
+        aiScore: b.aiScore
+      });
+    }
   }
 
-  bridgeStats.forEach(b => {
-    const d = b.predDigit;
-    if (d !== undefined && d !== null) {
-      digitCounts[d] = (digitCounts[d] || 0) + 1;
-      digitWinRateSum[d] = (digitWinRateSum[d] || 0) + (b.winRate || 70);
-      digitBridges[d].push(b.shortName || b.name);
+  // Nếu chưa đủ 4 số (do nhiều cầu báo trùng), lấy các số có tần suất xuất hiện thấp nhất trong lịch sử Hậu Nhị
+  if (selectedLoai4.length < 4) {
+    const digitFreq = {};
+    for (let i = 0; i < 10; i++) digitFreq[i.toString()] = 0;
+    const checkLen = Math.min(15, ascData.length);
+    for (let i = ascData.length - checkLen; i < ascData.length; i++) {
+      const h = ascData[i].Result.slice(3, 5);
+      for (const char of h) digitFreq[char] = (digitFreq[char] || 0) + 1;
     }
-  });
-
-  // Sắp xếp các số theo số lượng cầu báo trùng nhau (nhiều cầu báo nhất xếp trước)
-  const sortedDigits = Object.keys(digitCounts).sort((a, b) => {
-    // 1. Ưu tiên số có nhiều cầu báo trùng nhau nhất
-    if (digitCounts[b] !== digitCounts[a]) {
-      return digitCounts[b] - digitCounts[a];
+    const leastFreq = Object.keys(digitFreq).sort((a, b) => digitFreq[a] - digitFreq[b]);
+    for (const d of leastFreq) {
+      if (selectedLoai4.length >= 4) break;
+      if (!seenDigits.has(d)) {
+        seenDigits.add(d);
+        selectedLoai4.push(d);
+        loai4Details.push({
+          digit: d,
+          rank: selectedLoai4.length,
+          rankBadge: `TOP ${selectedLoai4.length}`,
+          bridgeName: 'Tần suất thấp',
+          statusLabel: 'Ít nổ gần đây',
+          aiScore: 60
+        });
+      }
     }
-    // 2. Nếu cùng số lượng cầu báo: Xét tổng tỷ lệ thắng của các cầu đó
-    if (digitWinRateSum[b] !== digitWinRateSum[a]) {
-      return digitWinRateSum[b] - digitWinRateSum[a];
-    }
-    return parseInt(a) - parseInt(b);
-  });
+  }
 
-  const loai3 = sortedDigits.slice(0, 3);
-  const giu7 = sortedDigits.slice(3).sort((a, b) => a - b);
+  const loai4 = selectedLoai4.slice(0, 4);
+  const loai3 = selectedLoai4.slice(0, 3);
+  const loai3Details = loai4Details.slice(0, 3);
 
-  const loai4 = sortedDigits.slice(0, 4);
-  const giu6 = sortedDigits.slice(4).sort((a, b) => a - b);
+  const allDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+  const giu6 = allDigits.filter(d => !loai4.includes(d)).sort((a, b) => a - b);
+  const giu7 = allDigits.filter(d => !loai3.includes(d)).sort((a, b) => a - b);
 
   // Sinh dàn 49 số & 36 số (đánh số giữ lại)
   const dan49 = [];
@@ -377,7 +583,7 @@ export const getLoaiSoHauNhi = (rawData) => {
   for (const d1 of giu6) for (const d2 of giu6) dan36.push(d1 + d2);
 
   const dan64 = [];
-  const giu8 = sortedDigits.slice(2).sort((a, b) => a - b);
+  const giu8 = allDigits.filter(d => !loai4.slice(0, 2).includes(d)).sort((a, b) => a - b);
   for (const d1 of giu8) for (const d2 of giu8) dan64.push(d1 + d2);
 
   // Sinh dàn 9 số & 16 số (bắt số loại)
@@ -387,25 +593,41 @@ export const getLoaiSoHauNhi = (rawData) => {
   const dan16 = [];
   for (const d1 of loai4) for (const d2 of loai4) dan16.push(d1 + d2);
 
-  const recommendedBridges = bridgeStats.filter(b => b.isRecommended);
+  const digitCounts = {};
+  const digitBridges = {};
+  for (let i = 0; i < 10; i++) {
+    const d = i.toString();
+    digitCounts[d] = 0;
+    digitBridges[d] = [];
+  }
+  rankedBridges.forEach(b => {
+    if (b.predDigit) {
+      digitCounts[b.predDigit] = (digitCounts[b.predDigit] || 0) + 1;
+      digitBridges[b.predDigit].push(b.shortName);
+    }
+  });
 
-  let activeBridgeName = 'Cầu Bắt Chạm Loại Thuận (Bóng Dương)';
-  if (recommendedBridges.length > 0) {
-    const topRec = recommendedBridges.sort((a, b) => b.streak - a.streak);
-    activeBridgeName = `⭐ CẦU KHUYÊN DÙNG: ${topRec.map(b => `${b.shortName} (Thông ${b.streak} tay)`).join(' • ')}`;
+  const recommendedBridges = rankedBridges.filter(b => b.isRecommended);
+
+  let activeBridgeName = 'Cầu Bắt Chạm Loại Động (9 Cầu AI)';
+  if (rankedBridges.length > 0) {
+    const top1 = rankedBridges[0];
+    activeBridgeName = `⭐ ${top1.rankBadge}: ${top1.shortName} (${top1.statusLabel})`;
   }
 
-  const streakSummaries = bridgeStats
-    .sort((a, b) => b.streak - a.streak)
-    .map(b => `${b.shortName} (${b.streak >= 3 ? '🔥 Thông ' : 'Ăn '}${b.streak} tay ➔ Loại ${b.predDigit})`);
+  const streakSummaries = rankedBridges.slice(0, 4)
+    .map(b => `${b.rankBadge} ${b.shortName}: Loại ${b.predDigit} (${b.statusLabel})`);
 
-  const trendReason = `⚡ Trạng thái 18 Cầu: ${streakSummaries.join(' | ')}`;
+  const trendReason = `⚡ TOP Cầu Dẫn Đầu: ${streakSummaries.join(' • ')}`;
 
   return {
-    bridgeStats,
+    bridgeStats: rankedBridges,
+    rankedBridges,
     recommendedBridges,
     digitCounts,
     digitBridges,
+    loai4Details,
+    loai3Details,
     loai3,
     giu7,
     loai4,
