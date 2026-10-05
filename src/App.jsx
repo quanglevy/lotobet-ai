@@ -668,19 +668,82 @@ const ExecutiveDashboard = ({
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     {historyCheck.pLoaiSo.bridgeStats.map((b, idx) => {
                       const isWin = !historyCheck.resultHau?.includes(b.predDigit);
+                      const loaiSoBridge = (loaiSo?.bridgeStats || []).find(x => x.id === b.id) || b;
+                      const hist10 = loaiSoBridge.history10 || b.history10 || [];
+                      const wins10 = hist10.filter(h => h.isWin).length;
+                      const total10 = hist10.length;
+                      const rate10 = total10 > 0 ? Math.round((wins10 / total10) * 100) : 0;
+
                       return (
-                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: isWin ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)', padding: '6px 10px', borderRadius: '6px', border: isWin ? '1px solid #059669' : '1px solid #ef4444', flexWrap: 'wrap', gap: '4px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span style={{ backgroundColor: b.rank === 1 ? '#ca8a04' : (b.rank === 2 ? '#0284c7' : (b.rank === 3 ? '#c2410c' : '#334155')), color: b.rank === 1 ? 'black' : 'white', fontSize: '10px', fontWeight: 'bold', padding: '1px 6px', borderRadius: '4px' }}>
-                              {b.rankBadge}
-                            </span>
-                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#f1f5f9' }}>{b.name}</span>
+                        <div 
+                          key={idx} 
+                          style={{ 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            gap: '6px',
+                            backgroundColor: isWin ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)', 
+                            padding: '8px 10px', 
+                            borderRadius: '8px', 
+                            border: isWin ? '1px solid #059669' : '1px solid #ef4444'
+                          }}
+                        >
+                          {/* Hàng 1: Tên cầu, TOP badge, Số cắt & Kết quả kỳ vừa xổ */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span style={{ 
+                                backgroundColor: b.rank === 1 ? '#ca8a04' : (b.rank === 2 ? '#0284c7' : (b.rank === 3 ? '#c2410c' : '#334155')), 
+                                color: b.rank === 1 ? 'black' : 'white', 
+                                fontSize: '10.5px', 
+                                fontWeight: 'bold', 
+                                padding: '2px 7px', 
+                                borderRadius: '4px' 
+                              }}>
+                                {b.rankBadge}
+                              </span>
+                              <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: '#f1f5f9' }}>{b.name}</span>
+                            </div>
+                            
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ fontSize: '11px', color: '#cbd5e1' }}>Cắt: <strong style={{ color: '#facc15' }}>[{b.predDigit}]</strong></span>
+                              <span style={{ 
+                                fontSize: '11px', 
+                                fontWeight: 'bold', 
+                                color: isWin ? '#34d399' : '#f87171',
+                                backgroundColor: isWin ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                                padding: '2px 8px',
+                                borderRadius: '4px',
+                                border: isWin ? '1px solid #059669' : '1px solid #ef4444'
+                              }}>
+                                {isWin ? '✅ THẮNG' : '❌ THUA'}
+                              </span>
+                            </div>
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span style={{ fontSize: '11px', color: '#94a3b8' }}>Cắt: [{b.predDigit}]</span>
-                            <span style={{ fontSize: '11px', fontWeight: 'bold', color: isWin ? '#34d399' : '#f87171' }}>
-                              {isWin ? '✅ THẮNG' : '❌ THUA'}
-                            </span>
+
+                          {/* Hàng 2: Thống kê 10 kỳ gần nhất của cầu này */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px', paddingTop: '4px', borderTop: '1px dashed rgba(255,255,255,0.1)' }}>
+                            <div style={{ fontSize: '10.5px', color: '#94a3b8' }}>
+                              10 kỳ: <strong style={{ color: wins10 >= 8 ? '#34d399' : (wins10 >= 6 ? '#fbbf24' : '#f87171') }}>{wins10}/{total10} Trúng ({rate10}%)</strong>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap', alignItems: 'center' }}>
+                              {hist10.map((h, i) => (
+                                <span 
+                                  key={i} 
+                                  title={`Kỳ ${h.drawId}: ${h.isWin ? 'Trúng (Thắng)' : 'Trượt (Thua)'} | Hậu Nhị: ${h.nextHau} | Cắt: ${h.predDigit}`}
+                                  style={{
+                                    backgroundColor: h.isWin ? '#065f46' : '#7f1d1d',
+                                    border: h.isWin ? '1px solid #34d399' : '1px solid #ef4444',
+                                    color: 'white',
+                                    borderRadius: '3px',
+                                    padding: '1px 4px',
+                                    fontSize: '9.5px',
+                                    fontWeight: 'bold'
+                                  }}
+                                >
+                                  {h.drawId ? h.drawId.slice(-3) : (i + 1)}:{h.isWin ? '✅' : '❌'}
+                                </span>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       );
