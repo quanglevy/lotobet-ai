@@ -534,49 +534,44 @@ export const getLoaiSoHauNhi = (rawData) => {
     // 3. Cầu gãy kép (Multi-loss): gãy liên tiếp >= 2 kỳ
     const isMultiLoss = h0 === false && h1 === false;
 
-    // Tính điểm AI Động Toàn Diện (Dynamic AI Score)
+    // TÍNH ĐIỂM AI CHUẨN XÁC:
     let aiScore = winRate * 1.5; // Điểm nền tảng độ bền dài hạn (0 -> 150)
-    aiScore += (streak * 18);    // Mỗi tay thông +18đ
 
-    if (streak >= 3) aiScore += 30; // Thưởng phong độ cao
-    if (streak >= 5) aiScore += 45; // Thưởng rồng lửa
-
-    // Thưởng điểm phục hồi 1-miss recovery (+90đ - Ưu tiên hàng đầu)
-    if (is1MissRecovery) {
-      aiScore += 90;
-    }
-    // Thưởng điểm bền bỉ nếu vừa lỡ 1 nhịp sau chuỗi dài (Ăn 8 gãy 1 ➔ +75đ + 8*10 = +155đ)
-    if (is1DipResilient) {
-      aiScore += 75 + (prevStreakBeforeDip * 10);
-    }
-    // Phạt nặng nếu gãy liên tiếp >= 2 kỳ (-80đ)
-    if (isMultiLoss) {
-      aiScore -= 80;
+    // Đánh giá phong độ dựa trên kỳ mới nhất:
+    if (h0 === true) {
+      aiScore += 40; // Đang ăn ở kỳ mới nhất
+      aiScore += (streak * 25); // Mỗi tay thông +25đ
+      if (streak >= 3) aiScore += 35; // Thưởng phong độ cao
+      if (streak >= 5) aiScore += 60; // Thưởng rồng lửa
+      if (is1MissRecovery) aiScore += 80; // Hồi nhịp thành công
+    } else {
+      // Cầu VỪA BỊ GÃY ở kỳ vừa xong: Phạt điểm ngay lập tức!
+      aiScore -= 100;
+      if (isMultiLoss) {
+        aiScore -= 120; // Gãy liên tiếp >= 2 kỳ phạt thêm
+      }
     }
 
     let statusType = 'normal';
     let statusLabel = `Ăn ${streak} tay (${winRate}%)`;
-    if (is1MissRecovery) {
+    if (h0 === false) {
+      statusType = 'broken';
+      statusLabel = isMultiLoss ? `⚠️ Gãy ${hitStreak} tay liên tiếp` : `⚠️ Vừa gãy nhịp (${winRate}%)`;
+    } else if (is1MissRecovery) {
       statusType = 'recovery';
       statusLabel = `⚡ HỒI NHỊP (Trượt 1 nối lại)`;
-    } else if (is1DipResilient) {
-      statusType = 'resilient';
-      statusLabel = `🛡️ SIÊU BỀN (Ăn ${prevStreakBeforeDip} gãy 1 ➔ Chờ Nổ Lại)`;
     } else if (streak >= 5) {
       statusType = 'dragon';
       statusLabel = `🔥 RỒNG LỬA (Thông ${streak} tay)`;
     } else if (streak >= 3) {
       statusType = 'hot';
       statusLabel = `🔥 THÔNG ${streak} TAY`;
-    } else if (streak >= 1) {
+    } else {
       statusType = 'normal';
       statusLabel = `✅ Ăn ${streak} tay (${winRate}%)`;
-    } else {
-      statusType = 'broken';
-      statusLabel = `⚠️ Gãy nhịp (${winRate}%)`;
     }
 
-    const isRecommended = streak >= 3 || is1MissRecovery || is1DipResilient || (streak >= 2 && winRate >= 80);
+    const isRecommended = h0 === true && (streak >= 3 || is1MissRecovery || (streak >= 2 && winRate >= 80));
 
     return {
       id: bridge.id,
@@ -612,8 +607,8 @@ export const getLoaiSoHauNhi = (rawData) => {
     rankBadge: idx === 0 ? '🥇 TOP 1' : (idx === 1 ? '🥈 TOP 2' : (idx === 2 ? '🥉 TOP 3' : (idx === 3 ? '🎖️ TOP 4' : `TOP ${idx + 1}`)))
   }));
 
-  // 3. THUẬT TOÁN ĐỒNG THUẬN ĐA CẦU (MULTI-BRIDGE CONSENSUS) CHỌN 4 SỐ & 3 SỐ LOẠI TỐI ƯU
-  // Gom nhóm 10 cầu theo số dự đoán loại (0..9) để tìm các số được nhiều cầu đồng thuận chỉ ra nhất
+  // 3. THUẬT TOÁN ĐỒNG THUẬN ĐA CẦU THÔNG MINH (ACTIVE WINNING CONSENSUS)
+  // Gom nhóm 10 cầu theo số dự đoán loại (0..9)
   const digitMap = new Map();
   for (let i = 0; i <= 9; i++) {
     digitMap.set(i.toString(), {
@@ -638,37 +633,57 @@ export const getLoaiSoHauNhi = (rawData) => {
     }
   }
 
-  // Tính điểm ưu tiên cho từng con số loại
+  // Tính điểm ưu tiên thực tế cho từng con số loại:
   const candidateList = Array.from(digitMap.values())
     .filter(item => item.count > 0)
     .map(item => {
-      // Điểm thưởng đồng thuận đa cầu: 2 cầu trùng -> +600đ, 3 cầu trùng -> +1200đ
-      const consensusBonus = item.count >= 2 ? (item.count - 1) * 600 : 0;
-      
-      // Tổng điểm chất lượng AI của các cầu chỉ ra số này
-      const qualityScore = item.totalScore;
-      
-      // Thưởng streak thông tay của cầu tốt nhất
-      const streakBonus = item.maxStreak * 20;
-      
-      // Thưởng tỷ lệ thắng
-      const winRateBonus = item.maxWinRate * 1.5;
+      // Phân loại các cầu đang thắng vs các cầu vừa gãy
+      const winningBridges = item.bridges.filter(b => b.history10[0]?.isWin === true);
+      const losingBridges = item.bridges.filter(b => b.history10[0]?.isWin === false);
+      const activeWinCount = winningBridges.length; // Số cầu ĐANG THẮNG
+      const activeLossCount = losingBridges.length; // Số cầu VỪA GÃY
 
-      const finalScore = consensusBonus + qualityScore + streakBonus + winRateBonus;
+      // Điểm thưởng đồng thuận cầu ĐANG THẮNG:
+      // - 2 cầu đang thắng: +1000đ
+      // - 3 cầu đang thắng: +2000đ
+      // - Cầu bị gãy phạt nặng: -350đ/cầu gãy
+      let consensusBonus = 0;
+      if (activeWinCount >= 2) {
+        consensusBonus += (activeWinCount - 1) * 1000;
+      }
+      consensusBonus -= (activeLossCount * 350);
 
-      // Tóm tắt tên cầu: ví dụ "Cầu 6 + Cầu 8"
+      // Tổng điểm chất lượng của các cầu ĐANG THẮNG
+      const winQualityScore = winningBridges.reduce((sum, b) => sum + b.aiScore, 0);
+      
+      // Streak cao nhất của cầu đang thắng
+      const winMaxStreak = winningBridges.length > 0 ? Math.max(...winningBridges.map(b => b.streak)) : 0;
+      const streakBonus = winMaxStreak * 30;
+
+      // Tỷ lệ thắng trung bình
+      const avgWinRate = winningBridges.length > 0 ? (winningBridges.reduce((sum, b) => sum + b.winRate, 0) / winningBridges.length) : 0;
+
+      const finalScore = consensusBonus + winQualityScore + streakBonus + (avgWinRate * 1.5);
+
+      // Tóm tắt tên cầu
       const bridgeNames = item.bridges.map(b => b.shortName).join(' + ');
 
       // Nhãn trạng thái
       let statusDesc = '';
-      if (item.count >= 2) {
-        statusDesc = `${item.count} cầu trùng (Thông ${item.maxStreak}t)`;
+      if (activeWinCount >= 2) {
+        statusDesc = `${activeWinCount} cầu đang ăn (Thông ${winMaxStreak}t)`;
+      } else if (activeWinCount === 1) {
+        statusDesc = winningBridges[0].statusLabel;
       } else {
-        statusDesc = item.bridges[0]?.statusLabel || `Ăn ${item.maxStreak} tay`;
+        statusDesc = `⚠️ ${activeLossCount} cầu vừa gãy`;
       }
 
       return {
         ...item,
+        activeWinCount,
+        activeLossCount,
+        winQualityScore,
+        winMaxStreak,
         finalScore,
         bridgeNames,
         statusDesc
@@ -676,13 +691,13 @@ export const getLoaiSoHauNhi = (rawData) => {
     });
 
   // Sắp xếp ưu tiên:
-  // 1. Số lượng cầu đồng thuận (2 cầu > 1 cầu)
-  // 2. Tổng điểm cuối cùng (tổng điểm AI + streak + winRate)
-  // 3. Chuỗi thông lớn nhất
+  // 1. Số lượng cầu ĐANG THẮNG (3 cầu thắng > 2 cầu thắng > 1 cầu thắng > 0 cầu thắng)
+  // 2. Điểm tổng hợp cuối cùng (consensus + win score + streak)
+  // 3. Chuỗi thông lớn nhất của cầu đang thắng
   candidateList.sort((a, b) => {
-    if (b.count !== a.count) return b.count - a.count;
+    if (b.activeWinCount !== a.activeWinCount) return b.activeWinCount - a.activeWinCount;
     if (b.finalScore !== a.finalScore) return b.finalScore - a.finalScore;
-    if (b.maxStreak !== a.maxStreak) return b.maxStreak - a.maxStreak;
+    if (b.winMaxStreak !== a.winMaxStreak) return b.winMaxStreak - a.winMaxStreak;
     return b.totalScore - a.totalScore;
   });
 
@@ -701,7 +716,7 @@ export const getLoaiSoHauNhi = (rawData) => {
       rankBadge: selectedLoai4.length === 1 ? '🥇 TOP 1' : (selectedLoai4.length === 2 ? '🥈 TOP 2' : (selectedLoai4.length === 3 ? '🥉 TOP 3' : '🎖️ TOP 4')),
       bridgeName: item.bridgeNames,
       statusLabel: item.statusDesc,
-      aiScore: Math.round(item.totalScore),
+      aiScore: Math.round(item.finalScore > 0 ? item.finalScore : item.totalScore),
       bridgeCount: item.count
     });
   }
