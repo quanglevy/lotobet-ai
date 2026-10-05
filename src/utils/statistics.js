@@ -600,58 +600,113 @@ export const getLoaiSoHauNhi = (rawData) => {
     };
   });
 
-  // 2. Xếp hạng cầu từ TOP 1 đến TOP 10
-  // Cố định ưu tiên 4 Cầu cốt lõi của người dùng làm TOP 1 -> TOP 4:
-  // TOP 1: cau_1 (Tổng Chục Ngàn + Trăm + 1)
-  // TOP 2: cau_2 (Tổng Chục Ngàn + ĐV + 1)
-  // TOP 3: cau_3 (Tổng Ngàn + Đơn Vị)
-  // TOP 4: cau_4 (Tổng Trăm + ĐV + 1)
-  // Các cầu còn lại (cau_5 -> cau_10) xếp hạng TOP 5 -> TOP 10 theo AI Score / Streak / WinRate
-  const priorityIds = ['cau_1', 'cau_2', 'cau_3', 'cau_4'];
-  
-  const top4Priority = priorityIds
-    .map(id => bridgeStats.find(b => b.id === id))
-    .filter(Boolean);
-
-  const remainingBridges = bridgeStats
-    .filter(b => !priorityIds.includes(b.id))
-    .sort((a, b) => {
-      if (b.aiScore !== a.aiScore) return b.aiScore - a.aiScore;
-      if (b.streak !== a.streak) return b.streak - a.streak;
-      if (b.winRate !== a.winRate) return b.winRate - a.winRate;
-      return 0;
-    });
-
-  const rankedBridges = [...top4Priority, ...remainingBridges].map((b, idx) => ({
+  // 2. Xếp hạng 10 cầu theo AI Score, Streak, WinRate
+  const rankedBridges = [...bridgeStats].sort((a, b) => {
+    if (b.aiScore !== a.aiScore) return b.aiScore - a.aiScore;
+    if (b.streak !== a.streak) return b.streak - a.streak;
+    if (b.winRate !== a.winRate) return b.winRate - a.winRate;
+    return 0;
+  }).map((b, idx) => ({
     ...b,
     rank: idx + 1,
     rankBadge: idx === 0 ? '🥇 TOP 1' : (idx === 1 ? '🥈 TOP 2' : (idx === 2 ? '🥉 TOP 3' : (idx === 3 ? '🎖️ TOP 4' : `TOP ${idx + 1}`)))
   }));
 
-  // 3. Trích xuất 4 SỐ LOẠI TỐI ƯU (TOP 1, TOP 2, TOP 3, TOP 4)
-  // Ưu tiên chọn từ các Cầu dẫn đầu (TOP 1 -> TOP 9)
+  // 3. THUẬT TOÁN ĐỒNG THUẬN ĐA CẦU (MULTI-BRIDGE CONSENSUS) CHỌN 4 SỐ & 3 SỐ LOẠI TỐI ƯU
+  // Gom nhóm 10 cầu theo số dự đoán loại (0..9) để tìm các số được nhiều cầu đồng thuận chỉ ra nhất
+  const digitMap = new Map();
+  for (let i = 0; i <= 9; i++) {
+    digitMap.set(i.toString(), {
+      digit: i.toString(),
+      bridges: [],
+      count: 0,
+      totalScore: 0,
+      maxStreak: 0,
+      maxWinRate: 0
+    });
+  }
+
+  for (const b of bridgeStats) {
+    const d = b.predDigit;
+    if (d !== undefined && d !== null && digitMap.has(d.toString())) {
+      const entry = digitMap.get(d.toString());
+      entry.bridges.push(b);
+      entry.count += 1;
+      entry.totalScore += b.aiScore;
+      if (b.streak > entry.maxStreak) entry.maxStreak = b.streak;
+      if (b.winRate > entry.maxWinRate) entry.maxWinRate = b.winRate;
+    }
+  }
+
+  // Tính điểm ưu tiên cho từng con số loại
+  const candidateList = Array.from(digitMap.values())
+    .filter(item => item.count > 0)
+    .map(item => {
+      // Điểm thưởng đồng thuận đa cầu: 2 cầu trùng -> +600đ, 3 cầu trùng -> +1200đ
+      const consensusBonus = item.count >= 2 ? (item.count - 1) * 600 : 0;
+      
+      // Tổng điểm chất lượng AI của các cầu chỉ ra số này
+      const qualityScore = item.totalScore;
+      
+      // Thưởng streak thông tay của cầu tốt nhất
+      const streakBonus = item.maxStreak * 20;
+      
+      // Thưởng tỷ lệ thắng
+      const winRateBonus = item.maxWinRate * 1.5;
+
+      const finalScore = consensusBonus + qualityScore + streakBonus + winRateBonus;
+
+      // Tóm tắt tên cầu: ví dụ "Cầu 6 + Cầu 8"
+      const bridgeNames = item.bridges.map(b => b.shortName).join(' + ');
+
+      // Nhãn trạng thái
+      let statusDesc = '';
+      if (item.count >= 2) {
+        statusDesc = `${item.count} cầu trùng (Thông ${item.maxStreak}t)`;
+      } else {
+        statusDesc = item.bridges[0]?.statusLabel || `Ăn ${item.maxStreak} tay`;
+      }
+
+      return {
+        ...item,
+        finalScore,
+        bridgeNames,
+        statusDesc
+      };
+    });
+
+  // Sắp xếp ưu tiên:
+  // 1. Số lượng cầu đồng thuận (2 cầu > 1 cầu)
+  // 2. Tổng điểm cuối cùng (tổng điểm AI + streak + winRate)
+  // 3. Chuỗi thông lớn nhất
+  candidateList.sort((a, b) => {
+    if (b.count !== a.count) return b.count - a.count;
+    if (b.finalScore !== a.finalScore) return b.finalScore - a.finalScore;
+    if (b.maxStreak !== a.maxStreak) return b.maxStreak - a.maxStreak;
+    return b.totalScore - a.totalScore;
+  });
+
   const selectedLoai4 = [];
   const loai4Details = [];
   const seenDigits = new Set();
 
-  for (const b of rankedBridges) {
+  for (let i = 0; i < candidateList.length; i++) {
     if (selectedLoai4.length >= 4) break;
-    const d = b.predDigit;
-    if (d !== undefined && d !== null && !seenDigits.has(d)) {
-      seenDigits.add(d);
-      selectedLoai4.push(d);
-      loai4Details.push({
-        digit: d,
-        rank: b.rank,
-        rankBadge: b.rankBadge,
-        bridgeName: b.shortName,
-        statusLabel: b.statusLabel,
-        aiScore: b.aiScore
-      });
-    }
+    const item = candidateList[i];
+    selectedLoai4.push(item.digit);
+    seenDigits.add(item.digit);
+    loai4Details.push({
+      digit: item.digit,
+      rank: selectedLoai4.length,
+      rankBadge: selectedLoai4.length === 1 ? '🥇 TOP 1' : (selectedLoai4.length === 2 ? '🥈 TOP 2' : (selectedLoai4.length === 3 ? '🥉 TOP 3' : '🎖️ TOP 4')),
+      bridgeName: item.bridgeNames,
+      statusLabel: item.statusDesc,
+      aiScore: Math.round(item.totalScore),
+      bridgeCount: item.count
+    });
   }
 
-  // Nếu chưa đủ 4 số (do nhiều cầu báo trùng), lấy các số có tần suất xuất hiện thấp nhất trong lịch sử Hậu Nhị
+  // Nếu chưa đủ 4 số (do quá nhiều cầu trùng nhau), bù thêm từ các số có tần suất xuất hiện thấp nhất trong lịch sử Hậu Nhị
   if (selectedLoai4.length < 4) {
     const digitFreq = {};
     for (let i = 0; i < 10; i++) digitFreq[i.toString()] = 0;
@@ -672,7 +727,8 @@ export const getLoaiSoHauNhi = (rawData) => {
           rankBadge: `TOP ${selectedLoai4.length}`,
           bridgeName: 'Tần suất thấp',
           statusLabel: 'Ít nổ gần đây',
-          aiScore: 60
+          aiScore: 60,
+          bridgeCount: 0
         });
       }
     }
