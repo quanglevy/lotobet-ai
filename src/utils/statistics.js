@@ -713,10 +713,18 @@ export const getLoaiSoHauNhi = (rawData) => {
   const streakSummaries = rankedBridges.slice(0, 4)
     .map(b => `${b.rankBadge} ${b.shortName}: Loại ${b.predDigit} (${b.statusLabel})`);
 
-  const trendReason = `⚡ TOP Cầu Dẫn Đầu: ${streakSummaries.join(' • ')}`;
+  // 4. Danh sách 10 cầu theo thứ tự tĩnh cố định (Cầu 1 -> Cầu 10), gắn kèm thứ hạng AI
+  const staticBridgeStats = bridgeStats.map(b => {
+    const r = rankedBridges.find(x => x.id === b.id);
+    return {
+      ...b,
+      rank: r ? r.rank : 10,
+      rankBadge: r ? r.rankBadge : 'TOP 10'
+    };
+  });
 
   return {
-    bridgeStats: rankedBridges,
+    bridgeStats: staticBridgeStats,
     rankedBridges,
     recommendedBridges,
     digitCounts,

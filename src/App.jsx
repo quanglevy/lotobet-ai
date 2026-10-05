@@ -536,17 +536,17 @@ const ExecutiveDashboard = ({
             </div>
 
             {/* ========================================================================= */}
-            {/* PHẦN 2: 🟢 BẢNG XẾP HẠNG 10 CẦU BẮT SỐ ĐỘNG (TOP 1 ➔ TOP 10) */}
+            {/* PHẦN 2: 🟢 BẢNG 10 CẦU BẮT SỐ CỐ ĐỊNH (CẦU 1 ➔ CẦU 10) */}
             {/* ========================================================================= */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '6px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#064e3b', padding: '8px 12px', borderRadius: '8px', border: '1px solid #059669', flexWrap: 'wrap', gap: '4px' }}>
                 <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#6ee7b7', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  🟢 BẢNG XẾP HẠNG 10 CẦU BẮT SỐ ĐỘNG (TOP 1 ➔ TOP 10)
+                  🟢 BẢNG 10 CẦU BẮT SỐ (CẦU 1 ➔ CẦU 10)
                 </span>
-                <span style={{ fontSize: '11px', color: '#a7f3d0' }}>AI Tự Động Thích Ứng Theo Kỳ</span>
+                <span style={{ fontSize: '11px', color: '#a7f3d0' }}>Đối Chiếu Song Song Cố Định</span>
               </div>
               <div style={{ fontSize: '11px', color: '#94a3b8', paddingLeft: '4px', fontStyle: 'italic' }}>
-                * AI phân tích chuỗi thông, khả năng phục hồi nhịp (trượt 1 ăn lại ➔ TOP 1) và độ bền chuẩn xác.
+                * Bố cục cố định theo thứ tự 10 Cầu để đối chiếu trực tiếp song song với kết quả kỳ xổ.
               </div>
             </div>
 
@@ -811,7 +811,7 @@ const ExecutiveDashboard = ({
                 <div style={{ backgroundColor: '#0f172a', padding: '12px', borderRadius: '10px', border: '1px solid #10b981', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
                     <span style={{ fontWeight: 'bold', color: '#34d399', fontSize: '0.9rem' }}>
-                      🟢 ĐỐI CHIẾU 10 CẦU KỲ VỪA XỔ:
+                      🟢 ĐỐI CHIẾU 10 CẦU KỲ VỪA XỔ (CẦU 1 ➔ CẦU 10):
                     </span>
                     <span style={{ fontSize: '11px', color: '#9ca3af' }}>Về Hậu Nhị: <strong style={{ color: '#facc15' }}>{historyCheck.resultHau}</strong></span>
                   </div>
