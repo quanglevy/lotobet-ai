@@ -1022,78 +1022,7 @@ const ExecutiveDashboard = ({
 
       </div>
 
-      {/* LỊCH SỬ THỐNG KÊ (3 KỲ GẦN NHẤT) */}
-      <div className="mt-8 w-full flex flex-col gap-4 overflow-x-auto">
-         <div style={{ color: 'white', fontWeight: 'bold', fontSize: '1rem', textTransform: 'uppercase' }}>
-            📜 LỊCH SỬ THỐNG KÊ (3 KỲ GẦN NHẤT)
-         </div>
-         
-         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {historyList3.map((hist, idx) => (
-                <div key={idx} style={{ padding: '1rem', backgroundColor: '#0f1225', borderRadius: '8px', border: '1px solid #1f2937', display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
-                    
-                    <div style={{ width: '170px' }}>
-                       <div style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Kỳ {hist.drawId ? hist.drawId.slice(-3) : ''}</div>
-                       <div style={{ color: 'white', fontSize: '1.25rem', fontWeight: 'bold', letterSpacing: '0.1em' }}>{hist.fullResult || ''}</div>
-                       <div style={{ color: '#9ca3af', fontSize: '0.875rem', marginTop: '0.5rem' }}>Đã về: <span style={{ color: "#facc15", fontWeight: "bold" }}>{hist.resultTien || ''}</span> và <span style={{ color: "#facc15", fontWeight: "bold" }}>{hist.resultHau || ''}</span></div>
-                       
-                       {/* Badge Thống kê Song Song: Thuận Cầu & Đảo Cầu */}
-                       {(hist.pLoaiThuan || hist.pLoaiDao || hist.pLoaiHauNhi) && (
-                         <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '4px', backgroundColor: '#1e293b', padding: '6px', borderRadius: '6px' }}>
-                           <div style={{ fontSize: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                             <span style={{ color: '#34d399', fontWeight: 'bold' }}>🟢 Thuận:</span>
-                             <span style={{ color: hist.isLoai3ThuanHit ? '#34d399' : '#ef4444', fontWeight: 'bold' }}>L3: {hist.isLoai3ThuanHit ? '✅ Ăn' : '❌'}</span>
-                             <span style={{ color: hist.isLoai4ThuanHit ? '#fbbf24' : '#ef4444', fontWeight: 'bold' }}>L4: {hist.isLoai4ThuanHit ? '✅ Ăn' : '❌'}</span>
-                           </div>
-                           <div style={{ fontSize: '11px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                             <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>🔄 Đảo:</span>
-                             <span style={{ color: hist.isLoai3DaoHit ? '#34d399' : '#ef4444', fontWeight: 'bold' }}>L3: {hist.isLoai3DaoHit ? '✅ Ăn' : '❌'}</span>
-                             <span style={{ color: hist.isLoai4DaoHit ? '#fbbf24' : '#ef4444', fontWeight: 'bold' }}>L4: {hist.isLoai4DaoHit ? '✅ Ăn' : '❌'}</span>
-                           </div>
-                         </div>
-                       )}
 
-                       {hist.actualTXCL && hist.pTXCL && (
-                         <>
-                           <div style={{ color: '#9ca3af', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-                             Tổng 5 số: <span style={{ color: 'white', fontWeight: 'bold' }}>{hist.actualTXCL.sum}</span> ({hist.actualTXCL.tx} - {hist.actualTXCL.cl})
-                           </div>
-                           <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-                             {renderTXCLHit(hist.pTXCL.tx, hist.actualTXCL.tx)}
-                             {renderTXCLHit(hist.pTXCL.cl, hist.actualTXCL.cl)}
-                           </div>
-                         </>
-                       )}
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
-                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
-                          <span style={{ color: '#f97316', fontWeight: 'bold', fontSize: '0.875rem', width: '90px', paddingTop: '4px' }}>🎯 DÀN 10:</span>
-                          <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-                             {renderBalls(hist.pD10, true, hist.resultHau, hist.resultTien)}
-                          </div>
-                          {renderCopyButton(hist.pD10, `Dàn 10 Số (Kỳ ${hist.drawId ? hist.drawId.slice(-3) : ''})`)}
-                       </div>
-                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
-                          <span style={{ color: '#10b981', fontWeight: 'bold', fontSize: '0.875rem', width: '90px', paddingTop: '4px' }}>🛡️ DÀN 36:</span>
-                          <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-                             {renderBalls(hist.pD36, true, hist.resultHau, hist.resultTien)}
-                          </div>
-                          {renderCopyButton(hist.pD36, `Dàn 36 Số (Kỳ ${hist.drawId ? hist.drawId.slice(-3) : ''})`)}
-                       </div>
-                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
-                          <span style={{ color: '#3b82f6', fontWeight: 'bold', fontSize: '0.875rem', width: '90px', paddingTop: '4px' }}>🔥 DÀN 50:</span>
-                          <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-                             {renderBalls(hist.pD50, true, hist.resultHau, hist.resultTien)}
-                          </div>
-                          {renderCopyButton(hist.pD50, `Dàn 50 Số (Kỳ ${hist.drawId ? hist.drawId.slice(-3) : ''})`)}
-                       </div>
-                    </div>
-
-                </div>
-            ))}
-         </div>
-      </div>
 
     </div>
   );
