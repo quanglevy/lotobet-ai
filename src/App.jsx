@@ -707,7 +707,7 @@ const ExecutiveDashboard = ({
                       {(b.history10 || []).map((h, i) => (
                         <span 
                           key={i} 
-                          title={`Kỳ ${h.drawId}: ${h.isWin ? 'Trúng (Thắng)' : 'Trượt (Thua)'} | Về Hậu: ${h.nextHau} | Cắt: ${h.predDigit}`}
+                          title={`Kỳ ${h.drawId}: ${h.isWin ? 'Trúng (Thắng)' : 'Trượt (Thua)'} | Về Hậu: ${h.nextHau} | Loại: ${h.predDigit}`}
                           style={{
                             backgroundColor: h.isWin ? '#065f46' : '#991b1b',
                             border: h.isWin ? '1px solid #34d399' : '1px solid #ef4444',
@@ -737,7 +737,7 @@ const ExecutiveDashboard = ({
                       gap: '5px'
                     }}
                   >
-                    {/* Hàng 1: Tên cầu, TOP badge, Số cắt & Kết quả kỳ vừa xổ */}
+                    {/* Hàng 1: Tên cầu, TOP badge, Số loại & Kết quả kỳ vừa xổ */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span style={{ 
@@ -755,7 +755,7 @@ const ExecutiveDashboard = ({
                       
                       {prevBridge ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span style={{ fontSize: '12px', color: '#cbd5e1', fontWeight: 'bold' }}>Cắt:</span>
+                          <span style={{ fontSize: '12px', color: '#cbd5e1', fontWeight: 'bold' }}>Loại:</span>
                           <span style={{ 
                             backgroundColor: '#1e293b', 
                             color: '#facc15', 
@@ -799,7 +799,7 @@ const ExecutiveDashboard = ({
                         {hist10.map((h, i) => (
                           <span 
                             key={i} 
-                            title={`Kỳ ${h.drawId}: ${h.isWin ? 'Trúng (Thắng)' : 'Trượt (Thua)'} | Hậu Nhị: ${h.nextHau} | Cắt: ${h.predDigit}`}
+                            title={`Kỳ ${h.drawId}: ${h.isWin ? 'Trúng (Thắng)' : 'Trượt (Thua)'} | Hậu Nhị: ${h.nextHau} | Loại: ${h.predDigit}`}
                             style={{
                               backgroundColor: h.isWin ? '#065f46' : '#7f1d1d',
                               border: h.isWin ? '1px solid #34d399' : '1px solid #ef4444',
