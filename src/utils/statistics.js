@@ -1325,3 +1325,253 @@ export const calculateSmartTouches = (rawData) => {
   };
 };
 
+// ============================================================================
+// 🏆 HỆ THỐNG QUẢN LÝ & MÔ PHỎNG NUÔI KHUNG 3 KỲ QUAY (TỰ ĐỘNG RESET VỀ TAY 1 KHI TRÚNG)
+// ============================================================================
+export const calculateKhung3Ky = (rawData, strategyType = 'touch3') => {
+  if (!rawData || rawData.length < 3) {
+    return {
+      currentKhung: null,
+      historyKhungs: [],
+      stats: { totalKhung: 0, winCount: 0, winRate: 0, winStep1: 0, winStep2: 0, winStep3: 0, lossCount: 0 }
+    };
+  }
+
+  const ascData = [...rawData].reverse(); // Từ kỳ cũ nhất đến kỳ mới nhất
+  const n = ascData.length;
+  const historyKhungs = [];
+  let i = 2; // Khởi đầu sau khi đã có tối thiểu 2-3 kỳ làm dữ liệu phân tích
+
+  const getPredForSlice = (slice) => {
+    if (strategyType === 'touch3') {
+      const touches = calculateSmartTouches(slice);
+      return {
+        predNumbers: touches.dan51So || [],
+        title: 'TOP 3 Chạm Cứng',
+        shortBadge: `3 Chạm [${(touches.top3Touches || []).join(',')}]`,
+        danSize: (touches.dan51So || []).length,
+        extraInfo: `3 Chạm: ${(touches.top3Touches || []).join(', ')}`,
+        touches: touches.top3Touches || []
+      };
+    } else if (strategyType === 'touch4') {
+      const touches = calculateSmartTouches(slice);
+      return {
+        predNumbers: touches.dan64So || [],
+        title: 'TOP 4 Chạm Cứng',
+        shortBadge: `4 Chạm [${(touches.top4Touches || []).join(',')}]`,
+        danSize: (touches.dan64So || []).length,
+        extraInfo: `4 Chạm: ${(touches.top4Touches || []).join(', ')}`,
+        touches: touches.top4Touches || []
+      };
+    } else if (strategyType === 'loai4_dan36') {
+      const loai = getLoaiSoHauNhi(slice);
+      return {
+        predNumbers: loai.dan36 || [],
+        title: 'Dàn 36 Số (Kèo Loại 4 Số)',
+        shortBadge: `Bỏ 4 số [${(loai.loai4 || []).join(',')}]`,
+        danSize: (loai.dan36 || []).length,
+        extraInfo: `Bỏ số: ${(loai.loai4 || []).join(', ')}`,
+        loai4: loai.loai4 || []
+      };
+    } else if (strategyType === 'ghep25') {
+      const touches = calculateSmartTouches(slice);
+      return {
+        predNumbers: touches.dan25Ghep || [],
+        title: 'Dàn Ghép Trong 25 Số',
+        shortBadge: `Ghép 5 Chạm [${(touches.sortedTouches || []).slice(0, 5).join(',')}]`,
+        danSize: (touches.dan25Ghep || []).length,
+        extraInfo: `Ghép chạm: ${(touches.sortedTouches || []).slice(0, 5).join(', ')}`
+      };
+    } else if (strategyType === 'txcl') {
+      const txclPred = predictTXCL(slice);
+      return {
+        predNumbers: [],
+        title: `Tài Xỉu (${txclPred.tx})`,
+        shortBadge: `Tài Xỉu: ${txclPred.tx}`,
+        danSize: 50,
+        extraInfo: `Dự đoán: ${txclPred.tx} (${txclPred.rate || '85%'})`,
+        txcl: txclPred
+      };
+    }
+
+    // Default fallback to touch3
+    const touches = calculateSmartTouches(slice);
+    return {
+      predNumbers: touches.dan51So || [],
+      title: 'TOP 3 Chạm Cứng',
+      shortBadge: `3 Chạm [${(touches.top3Touches || []).join(',')}]`,
+      danSize: (touches.dan51So || []).length,
+      extraInfo: `3 Chạm: ${(touches.top3Touches || []).join(', ')}`,
+      touches: touches.top3Touches || []
+    };
+  };
+
+  const isWinCheck = (predObj, resDraw) => {
+    if (!resDraw || !resDraw.Result || resDraw.Result.length < 5) return false;
+    const resHau = resDraw.Result.slice(3, 5);
+    if (strategyType === 'txcl') {
+      const actual = checkTXCL(resDraw.Result);
+      return actual.tx === predObj.txcl?.tx;
+    }
+    return (predObj.predNumbers || []).includes(resHau);
+  };
+
+  let currentKhung = null;
+
+  while (i < n) {
+    const slice = ascData.slice(0, i + 1).reverse();
+    const predObj = getPredForSlice(slice);
+    const startDraw = ascData[i];
+    const startDrawId = startDraw.Draw_ID;
+
+    // 1. Kiểm tra Tay 1 (Kỳ i + 1)
+    if (i + 1 >= n) {
+      currentKhung = {
+        step: 1,
+        maxSteps: 3,
+        startDrawId,
+        predObj,
+        betRatio: '1x (Tỉ lệ 1)',
+        stepHistory: []
+      };
+      break;
+    }
+
+    const d1 = ascData[i + 1];
+    const resHau1 = d1.Result.slice(3, 5);
+    const win1 = isWinCheck(predObj, d1);
+
+    if (win1) {
+      historyKhungs.push({
+        khungIndex: historyKhungs.length + 1,
+        startDrawId,
+        endDrawId: d1.Draw_ID,
+        predObj,
+        status: 'WIN',
+        hitStep: 1,
+        steps: [
+          { step: 1, drawId: d1.Draw_ID, result: d1.Result, resultHau: resHau1, isHit: true }
+        ]
+      });
+      i += 1; // Ăn Tay 1 -> Reset ngay về Tay 1 cho kỳ tiếp theo
+      continue;
+    }
+
+    // 2. Trượt Tay 1 -> Kiểm tra Tay 2 (Kỳ i + 2)
+    if (i + 2 >= n) {
+      currentKhung = {
+        step: 2,
+        maxSteps: 3,
+        startDrawId,
+        predObj,
+        betRatio: '3x (Tỉ lệ 3)',
+        stepHistory: [
+          { step: 1, drawId: d1.Draw_ID, result: d1.Result, resultHau: resHau1, isHit: false }
+        ]
+      };
+      break;
+    }
+
+    const d2 = ascData[i + 2];
+    const resHau2 = d2.Result.slice(3, 5);
+    const win2 = isWinCheck(predObj, d2);
+
+    if (win2) {
+      historyKhungs.push({
+        khungIndex: historyKhungs.length + 1,
+        startDrawId,
+        endDrawId: d2.Draw_ID,
+        predObj,
+        status: 'WIN',
+        hitStep: 2,
+        steps: [
+          { step: 1, drawId: d1.Draw_ID, result: d1.Result, resultHau: resHau1, isHit: false },
+          { step: 2, drawId: d2.Draw_ID, result: d2.Result, resultHau: resHau2, isHit: true }
+        ]
+      });
+      i += 2; // Ăn Tay 2 -> Reset ngay về Tay 1 cho kỳ tiếp theo
+      continue;
+    }
+
+    // 3. Trượt Tay 2 -> Kiểm tra Tay 3 (Kỳ i + 3)
+    if (i + 3 >= n) {
+      currentKhung = {
+        step: 3,
+        maxSteps: 3,
+        startDrawId,
+        predObj,
+        betRatio: '8x (Tỉ lệ 8)',
+        stepHistory: [
+          { step: 1, drawId: d1.Draw_ID, result: d1.Result, resultHau: resHau1, isHit: false },
+          { step: 2, drawId: d2.Draw_ID, result: d2.Result, resultHau: resHau2, isHit: false }
+        ]
+      };
+      break;
+    }
+
+    const d3 = ascData[i + 3];
+    const resHau3 = d3.Result.slice(3, 5);
+    const win3 = isWinCheck(predObj, d3);
+
+    if (win3) {
+      historyKhungs.push({
+        khungIndex: historyKhungs.length + 1,
+        startDrawId,
+        endDrawId: d3.Draw_ID,
+        predObj,
+        status: 'WIN',
+        hitStep: 3,
+        steps: [
+          { step: 1, drawId: d1.Draw_ID, result: d1.Result, resultHau: resHau1, isHit: false },
+          { step: 2, drawId: d2.Draw_ID, result: d2.Result, resultHau: resHau2, isHit: false },
+          { step: 3, drawId: d3.Draw_ID, result: d3.Result, resultHau: resHau3, isHit: true }
+        ]
+      });
+      i += 3; // Ăn Tay 3 -> Reset ngay về Tay 1 cho kỳ tiếp theo
+      continue;
+    } else {
+      // Gãy Khung (Trượt cả 3 Tay)
+      historyKhungs.push({
+        khungIndex: historyKhungs.length + 1,
+        startDrawId,
+        endDrawId: d3.Draw_ID,
+        predObj,
+        status: 'LOSS',
+        hitStep: null,
+        steps: [
+          { step: 1, drawId: d1.Draw_ID, result: d1.Result, resultHau: resHau1, isHit: false },
+          { step: 2, drawId: d2.Draw_ID, result: d2.Result, resultHau: resHau2, isHit: false },
+          { step: 3, drawId: d3.Draw_ID, result: d3.Result, resultHau: resHau3, isHit: false }
+        ]
+      });
+      i += 3; // Hết khung 3 tay -> Reset sang Khung mới ở Tay 1
+      continue;
+    }
+  }
+
+  // Đảo ngược danh sách lịch sử khung để hiển thị khung mới nhất lên đầu
+  const reversedHistoryKhungs = [...historyKhungs].reverse();
+
+  const totalKhung = historyKhungs.length;
+  const winCount = historyKhungs.filter(k => k.status === 'WIN').length;
+  const winRate = totalKhung > 0 ? Math.round((winCount / totalKhung) * 100) : 0;
+  const winStep1 = historyKhungs.filter(k => k.hitStep === 1).length;
+  const winStep2 = historyKhungs.filter(k => k.hitStep === 2).length;
+  const winStep3 = historyKhungs.filter(k => k.hitStep === 3).length;
+  const lossCount = historyKhungs.filter(k => k.status === 'LOSS').length;
+
+  return {
+    currentKhung,
+    historyKhungs: reversedHistoryKhungs,
+    stats: {
+      totalKhung,
+      winCount,
+      winRate,
+      winStep1,
+      winStep2,
+      winStep3,
+      lossCount
+    }
+  };
+};
+

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Brain, Plus, Copy, Trash2, ShieldCheck, Flame, Sparkles, Target } from 'lucide-react';
+import { LayoutDashboard, Brain, Plus, Copy, Trash2, ShieldCheck, Flame, Sparkles, Target, Layers, TrendingUp, RefreshCw } from 'lucide-react';
 import { 
   analyzeUnified2D, 
   calculateCauScore, 
@@ -11,7 +11,8 @@ import {
   checkTXCL,
   getBacNhoAnalysis,
   getLoaiSoHauNhi,
-  calculateSmartTouches
+  calculateSmartTouches,
+  calculateKhung3Ky
 } from "./utils/statistics";
 
 const ExecutiveDashboard = ({ 
@@ -34,6 +35,10 @@ const ExecutiveDashboard = ({
   handleDeleteResult,
   bacNhoInfo
 }) => {
+  const [khungStrategy, setKhungStrategy] = useState('touch3');
+  const [showAllKhungHistory, setShowAllKhungHistory] = useState(false);
+  const khungData = calculateKhung3Ky(data, khungStrategy);
+  const { currentKhung, historyKhungs = [], stats = {} } = khungData || {};
 
   const wins4 = historyList10.filter(h => h && h.isLoai4Hit).length;
   const wins3 = historyList10.filter(h => h && h.isLoai3Hit).length;
@@ -718,6 +723,481 @@ const ExecutiveDashboard = ({
         {/* Ghi chú nguyên lý thuật toán */}
         <div style={{ fontSize: '11px', color: '#94a3b8', backgroundColor: 'rgba(15, 23, 42, 0.6)', padding: '6px 12px', borderRadius: '6px', borderLeft: '3px solid #10b981' }}>
           <strong style={{ color: '#34d399' }}>💡 Nguyên lý tối ưu chạm:</strong> Kết hợp <strong style={{ color: '#facc15' }}>Chạm Rơi Hậu Nhị</strong> + <strong style={{ color: '#38bdf8' }}>Bóng Âm Dương</strong> + <strong style={{ color: '#a7f3d0' }}>Loại Trừ Số Bị 10 Cầu Đè</strong> để tạo ra dàn Chạm có tỷ lệ phủ sóng Hậu Nhị lên đến <strong>80% - 90%</strong>.
+        </div>
+
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 🏆 KHU VỰC ĐỘT PHÁ 2: HỆ THỐNG NUÔI KHUNG 3 KỲ (TỰ ĐỘNG RESET VỀ TAY 1 KHI TRÚNG) */}
+      {/* ========================================================================= */}
+      <div style={{ 
+        backgroundColor: 'rgba(30, 27, 75, 0.45)', 
+        padding: '16px', 
+        borderRadius: '12px', 
+        border: '2px solid #6366f1', 
+        boxShadow: '0 0 25px rgba(99, 102, 241, 0.25)', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: '14px' 
+      }}>
+        
+        {/* Header Khung 3 Kỳ */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', borderBottom: '1px solid rgba(99, 102, 241, 0.4)', paddingBottom: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ backgroundColor: '#4f46e5', color: '#e0e7ff', padding: '4px 10px', borderRadius: '6px', fontWeight: '900', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <Layers size={16} /> CHIẾN THUẬT VỐN
+            </span>
+            <span style={{ color: '#a5b4fc', fontWeight: 'bold', fontSize: '1.15rem' }}>
+              👑 HỆ THỐNG NUÔI KHUNG 3 KỲ QUAY HẬU NHỊ (TỰ ĐỘNG QUAY LẠI TAY 1)
+            </span>
+          </div>
+          <span style={{ backgroundColor: '#312e81', color: '#c7d2fe', fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '6px', border: '1px solid #4f46e5' }}>
+            Trúng bất kỳ tay nào (1, 2, 3) đều reset về Tay 1 • Bảo toàn vốn tuyệt đối
+          </span>
+        </div>
+
+        {/* Thanh Chọn Loại Dàn Nuôi Khung (Strategy Pills) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <span style={{ color: '#94a3b8', fontSize: '12px', fontWeight: 'bold' }}>CHỌN DÀN NUÔI:</span>
+          
+          <button 
+            onClick={() => setKhungStrategy('touch3')}
+            style={{
+              backgroundColor: khungStrategy === 'touch3' ? '#4f46e5' : '#1e293b',
+              color: khungStrategy === 'touch3' ? '#ffffff' : '#cbd5e1',
+              border: khungStrategy === 'touch3' ? '1.5px solid #818cf8' : '1px solid #334155',
+              padding: '5px 12px',
+              borderRadius: '6px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              boxShadow: khungStrategy === 'touch3' ? '0 0 10px rgba(99, 102, 241, 0.4)' : 'none'
+            }}
+          >
+            <ShieldCheck size={14} color="#38bdf8" /> 🛡️ TOP 3 Chạm Cứng (Dàn 51s)
+            <span style={{ fontSize: '10px', backgroundColor: 'rgba(0,0,0,0.3)', padding: '1px 5px', borderRadius: '4px', color: '#34d399' }}>Khuyên dùng</span>
+          </button>
+
+          <button 
+            onClick={() => setKhungStrategy('loai4_dan36')}
+            style={{
+              backgroundColor: khungStrategy === 'loai4_dan36' ? '#4f46e5' : '#1e293b',
+              color: khungStrategy === 'loai4_dan36' ? '#ffffff' : '#cbd5e1',
+              border: khungStrategy === 'loai4_dan36' ? '1.5px solid #818cf8' : '1px solid #334155',
+              padding: '5px 12px',
+              borderRadius: '6px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              boxShadow: khungStrategy === 'loai4_dan36' ? '0 0 10px rgba(99, 102, 241, 0.4)' : 'none'
+            }}
+          >
+            <Flame size={14} color="#f59e0b" /> ⚡ Dàn 36 Số (Kèo Loại 4s)
+            <span style={{ fontSize: '10px', backgroundColor: 'rgba(0,0,0,0.3)', padding: '1px 5px', borderRadius: '4px', color: '#fbbf24' }}>1 ăn 99</span>
+          </button>
+
+          <button 
+            onClick={() => setKhungStrategy('touch4')}
+            style={{
+              backgroundColor: khungStrategy === 'touch4' ? '#4f46e5' : '#1e293b',
+              color: khungStrategy === 'touch4' ? '#ffffff' : '#cbd5e1',
+              border: khungStrategy === 'touch4' ? '1.5px solid #818cf8' : '1px solid #334155',
+              padding: '5px 12px',
+              borderRadius: '6px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              boxShadow: khungStrategy === 'touch4' ? '0 0 10px rgba(99, 102, 241, 0.4)' : 'none'
+            }}
+          >
+            <Target size={14} color="#34d399" /> 🎯 TOP 4 Chạm Cứng (Dàn 64s)
+          </button>
+
+          <button 
+            onClick={() => setKhungStrategy('ghep25')}
+            style={{
+              backgroundColor: khungStrategy === 'ghep25' ? '#4f46e5' : '#1e293b',
+              color: khungStrategy === 'ghep25' ? '#ffffff' : '#cbd5e1',
+              border: khungStrategy === 'ghep25' ? '1.5px solid #818cf8' : '1px solid #334155',
+              padding: '5px 12px',
+              borderRadius: '6px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              boxShadow: khungStrategy === 'ghep25' ? '0 0 10px rgba(99, 102, 241, 0.4)' : 'none'
+            }}
+          >
+            <Sparkles size={14} color="#c084fc" /> 💎 Dàn Ghép 25s
+          </button>
+
+          <button 
+            onClick={() => setKhungStrategy('txcl')}
+            style={{
+              backgroundColor: khungStrategy === 'txcl' ? '#4f46e5' : '#1e293b',
+              color: khungStrategy === 'txcl' ? '#ffffff' : '#cbd5e1',
+              border: khungStrategy === 'txcl' ? '1.5px solid #818cf8' : '1px solid #334155',
+              padding: '5px 12px',
+              borderRadius: '6px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              boxShadow: khungStrategy === 'txcl' ? '0 0 10px rgba(99, 102, 241, 0.4)' : 'none'
+            }}
+          >
+            🎲 Tài Xỉu (3 Tay)
+          </button>
+        </div>
+
+        {/* 2 Khối Chính: Khung Đang Nuôi (Live) & Thống Kê Lịch Sử Khung */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '14px' }}>
+          
+          {/* Box 1: KHUNG ĐANG NUÔI HIỆN TẠI (LIVE) */}
+          <div style={{ 
+            backgroundColor: '#0f172a', 
+            padding: '14px', 
+            borderRadius: '10px', 
+            border: currentKhung?.step === 1 ? '2px solid #10b981' : (currentKhung?.step === 2 ? '2px solid #f59e0b' : '2px solid #ef4444'),
+            boxShadow: currentKhung?.step === 1 ? '0 0 15px rgba(16, 185, 129, 0.3)' : (currentKhung?.step === 2 ? '0 0 15px rgba(245, 158, 11, 0.3)' : '0 0 15px rgba(239, 68, 68, 0.3)'),
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '10px' 
+          }}>
+            
+            {/* Header Box 1 */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ 
+                  backgroundColor: currentKhung?.step === 1 ? '#065f46' : (currentKhung?.step === 2 ? '#78350f' : '#7f1d1d'),
+                  color: currentKhung?.step === 1 ? '#34d399' : (currentKhung?.step === 2 ? '#fbbf24' : '#f87171'),
+                  border: currentKhung?.step === 1 ? '1px solid #10b981' : (currentKhung?.step === 2 ? '1px solid #f59e0b' : '1px solid #ef4444'),
+                  padding: '3px 10px',
+                  borderRadius: '6px',
+                  fontWeight: '900',
+                  fontSize: '12px'
+                }}>
+                  {currentKhung?.step === 1 ? '🟢 ĐANG Ở TAY 1 / 3' : (currentKhung?.step === 2 ? '🟡 ĐANG Ở TAY 2 / 3' : '🔴 ĐANG Ở TAY 3 / 3 (TAY CUỐI)')}
+                </span>
+                <span style={{ color: '#cbd5e1', fontSize: '11px' }}>
+                  (Bắt đầu từ kỳ: <strong style={{ color: '#facc15' }}>{currentKhung?.startDrawId || ''}</strong>)
+                </span>
+              </div>
+              <span style={{ 
+                backgroundColor: '#1e293b', 
+                color: '#93c5fd', 
+                padding: '2px 8px', 
+                borderRadius: '4px', 
+                fontSize: '11px', 
+                fontWeight: 'bold',
+                border: '1px solid #3b82f6'
+              }}>
+                Vào tiền: <strong style={{ color: '#38bdf8' }}>{currentKhung?.betRatio || '1x'}</strong>
+              </span>
+            </div>
+
+            {/* Thông tin Dàn Đang Nuôi */}
+            <div style={{ backgroundColor: '#1e293b', padding: '10px', borderRadius: '8px', border: '1px solid #334155', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+                <span style={{ color: '#818cf8', fontWeight: 'bold', fontSize: '0.95rem' }}>
+                  🎯 DÀN ĐANG NUÔI: <span style={{ color: '#ffffff' }}>{currentKhung?.predObj?.title}</span> ({currentKhung?.predObj?.danSize || 0} số)
+                </span>
+                <span style={{ color: '#94a3b8', fontSize: '11px' }}>{currentKhung?.predObj?.extraInfo || ''}</span>
+              </div>
+
+              {/* Danh sách bóng số */}
+              {currentKhung?.predObj?.predNumbers?.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', maxHeight: '110px', overflowY: 'auto', padding: '4px', backgroundColor: '#0f172a', borderRadius: '6px' }}>
+                  {renderBalls(currentKhung.predObj.predNumbers, true)}
+                </div>
+              )}
+
+              {/* Nút Copy Dàn Nuôi */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '2px' }}>
+                {currentKhung?.predObj?.predNumbers?.length > 0 && (
+                  renderCopyButton(currentKhung.predObj.predNumbers, `Dàn Nuôi Khung (${currentKhung.predObj.title})`)
+                )}
+                {currentKhung?.predObj?.touches && (
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText((currentKhung.predObj.touches || []).join(',')).then(() => {
+                        alert('Đã copy Chạm Nuôi Khung: ' + (currentKhung.predObj.touches || []).join(','));
+                      });
+                    }}
+                    style={{ 
+                      backgroundColor: "#312e81", 
+                      color: "#c7d2fe", 
+                      border: "1px solid #4f46e5", 
+                      padding: "4px 10px", 
+                      borderRadius: "5px", 
+                      fontSize: "11px", 
+                      fontWeight: "bold", 
+                      display: "flex", 
+                      alignItems: "center", 
+                      gap: "4px", 
+                      cursor: "pointer" 
+                    }}
+                  >
+                    <Copy size={12} /> Copy Chạm: [{(currentKhung.predObj.touches || []).join(',')}]
+                  </button>
+                )}
+                {currentKhung?.predObj?.loai4 && (
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText((currentKhung.predObj.loai4 || []).join(',')).then(() => {
+                        alert('Đã copy 4 Số Loại: ' + (currentKhung.predObj.loai4 || []).join(','));
+                      });
+                    }}
+                    style={{ 
+                      backgroundColor: "#78350f", 
+                      color: "#fde68a", 
+                      border: "1px solid #b45309", 
+                      padding: "4px 10px", 
+                      borderRadius: "5px", 
+                      fontSize: "11px", 
+                      fontWeight: "bold", 
+                      display: "flex", 
+                      alignItems: "center", 
+                      gap: "4px", 
+                      cursor: "pointer" 
+                    }}
+                  >
+                    <Copy size={12} /> Copy 4 Số Bỏ: [{(currentKhung.predObj.loai4 || []).join(',')}]
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Tiến trình 3 Tay của Khung Hiện Tại */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 'bold' }}>TIẾN TRÌNH 3 TAY CỦA KHUNG HIỆN TẠI:</span>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+                
+                {/* Tay 1 */}
+                <div style={{
+                  backgroundColor: currentKhung?.step === 1 ? '#065f46' : (currentKhung?.stepHistory?.length > 0 ? '#1e293b' : '#0f172a'),
+                  border: currentKhung?.step === 1 ? '1.5px solid #34d399' : (currentKhung?.stepHistory?.length > 0 ? '1px solid #ef4444' : '1px solid #334155'),
+                  borderRadius: '6px',
+                  padding: '6px',
+                  textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '2px'
+                }}>
+                  <span style={{ fontSize: '11px', fontWeight: 'bold', color: currentKhung?.step === 1 ? '#6ee7b7' : '#94a3b8' }}>TAY 1 (Tỉ lệ 1x)</span>
+                  {currentKhung?.step === 1 ? (
+                    <span style={{ fontSize: '11px', color: '#34d399', fontWeight: 'bold' }}>⚡ ĐANG ĐÁNH</span>
+                  ) : (
+                    currentKhung?.stepHistory?.[0] ? (
+                      <span style={{ fontSize: '10px', color: '#f87171' }}>❌ Trượt (Về {currentKhung.stepHistory[0].resultHau})</span>
+                    ) : <span style={{ fontSize: '10px', color: '#64748b' }}>Chưa tới</span>
+                  )}
+                </div>
+
+                {/* Tay 2 */}
+                <div style={{
+                  backgroundColor: currentKhung?.step === 2 ? '#78350f' : (currentKhung?.stepHistory?.length > 1 ? '#1e293b' : '#0f172a'),
+                  border: currentKhung?.step === 2 ? '1.5px solid #fbbf24' : (currentKhung?.stepHistory?.length > 1 ? '1px solid #ef4444' : '1px solid #334155'),
+                  borderRadius: '6px',
+                  padding: '6px',
+                  textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '2px'
+                }}>
+                  <span style={{ fontSize: '11px', fontWeight: 'bold', color: currentKhung?.step === 2 ? '#fde68a' : '#94a3b8' }}>TAY 2 (Tỉ lệ 3x)</span>
+                  {currentKhung?.step === 2 ? (
+                    <span style={{ fontSize: '11px', color: '#fbbf24', fontWeight: 'bold' }}>⚡ ĐANG ĐÁNH</span>
+                  ) : (
+                    currentKhung?.stepHistory?.[1] ? (
+                      <span style={{ fontSize: '10px', color: '#f87171' }}>❌ Trượt (Về {currentKhung.stepHistory[1].resultHau})</span>
+                    ) : <span style={{ fontSize: '10px', color: '#64748b' }}>{currentKhung?.step === 1 ? 'Dự phòng' : 'Chưa tới'}</span>
+                  )}
+                </div>
+
+                {/* Tay 3 */}
+                <div style={{
+                  backgroundColor: currentKhung?.step === 3 ? '#7f1d1d' : '#0f172a',
+                  border: currentKhung?.step === 3 ? '1.5px solid #f87171' : '1px solid #334155',
+                  borderRadius: '6px',
+                  padding: '6px',
+                  textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '2px'
+                }}>
+                  <span style={{ fontSize: '11px', fontWeight: 'bold', color: currentKhung?.step === 3 ? '#fca5a5' : '#94a3b8' }}>TAY 3 (Tỉ lệ 8x)</span>
+                  {currentKhung?.step === 3 ? (
+                    <span style={{ fontSize: '11px', color: '#ef4444', fontWeight: 'bold' }}>🔥 TAY CUỐI</span>
+                  ) : (
+                    <span style={{ fontSize: '10px', color: '#64748b' }}>Dự phòng</span>
+                  )}
+                </div>
+
+              </div>
+            </div>
+
+            {/* Ghi chú nguyên lý vào tiền */}
+            <div style={{ fontSize: '10px', color: '#94a3b8', backgroundColor: 'rgba(30, 41, 59, 0.5)', padding: '4px 8px', borderRadius: '4px' }}>
+              💡 <em>Lưu ý: Ngay khi <strong>trúng bất kỳ tay nào</strong>, hệ thống sẽ <strong>tự động chuyển về Tay 1</strong> với bộ số dự đoán mới nhất.</em>
+            </div>
+
+          </div>
+
+          {/* Box 2: BẢNG THỐNG KÊ LỊCH SỬ CÁC KHUNG ĐÃ NUÔI */}
+          <div style={{ backgroundColor: '#0f172a', padding: '14px', borderRadius: '10px', border: '1.5px solid #475569', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            
+            {/* Header Box 2 */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+              <span style={{ color: '#e2e8f0', fontWeight: 'bold', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <TrendingUp size={16} color="#38bdf8" /> 📊 LỊCH SỬ CÁC KHUNG ĐÃ NUÔI:
+              </span>
+              <span style={{ 
+                backgroundColor: stats?.winRate >= 80 ? '#065f46' : (stats?.winRate >= 60 ? '#78350f' : '#7f1d1d'),
+                color: stats?.winRate >= 80 ? '#34d399' : (stats?.winRate >= 60 ? '#fbbf24' : '#f87171'),
+                border: stats?.winRate >= 80 ? '1px solid #10b981' : (stats?.winRate >= 60 ? '1px solid #f59e0b' : '1px solid #ef4444'),
+                padding: '2px 8px',
+                borderRadius: '5px',
+                fontSize: '11px',
+                fontWeight: 'bold'
+              }}>
+                Thắng {stats?.winCount || 0}/{stats?.totalKhung || 0} Khung ({stats?.winRate || 0}%)
+              </span>
+            </div>
+
+            {/* Thống kê chi tiết Nổ Tay 1, 2, 3 & Gãy */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+              <div style={{ backgroundColor: '#1e293b', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #334155' }}>
+                <div style={{ color: '#94a3b8', fontSize: '10px' }}>Nổ Tay 1</div>
+                <div style={{ color: '#34d399', fontWeight: 'bold', fontSize: '14px' }}>{stats?.winStep1 || 0}</div>
+                <div style={{ color: '#64748b', fontSize: '9px' }}>{stats?.totalKhung > 0 ? Math.round((stats.winStep1 / stats.totalKhung) * 100) : 0}%</div>
+              </div>
+
+              <div style={{ backgroundColor: '#1e293b', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #334155' }}>
+                <div style={{ color: '#94a3b8', fontSize: '10px' }}>Nổ Tay 2</div>
+                <div style={{ color: '#38bdf8', fontWeight: 'bold', fontSize: '14px' }}>{stats?.winStep2 || 0}</div>
+                <div style={{ color: '#64748b', fontSize: '9px' }}>{stats?.totalKhung > 0 ? Math.round((stats.winStep2 / stats.totalKhung) * 100) : 0}%</div>
+              </div>
+
+              <div style={{ backgroundColor: '#1e293b', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #334155' }}>
+                <div style={{ color: '#94a3b8', fontSize: '10px' }}>Nổ Tay 3</div>
+                <div style={{ color: '#fbbf24', fontWeight: 'bold', fontSize: '14px' }}>{stats?.winStep3 || 0}</div>
+                <div style={{ color: '#64748b', fontSize: '9px' }}>{stats?.totalKhung > 0 ? Math.round((stats.winStep3 / stats.totalKhung) * 100) : 0}%</div>
+              </div>
+
+              <div style={{ backgroundColor: '#1e293b', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #334155' }}>
+                <div style={{ color: '#94a3b8', fontSize: '10px' }}>Gãy Khung</div>
+                <div style={{ color: stats?.lossCount > 0 ? '#ef4444' : '#94a3b8', fontWeight: 'bold', fontSize: '14px' }}>{stats?.lossCount || 0}</div>
+                <div style={{ color: '#64748b', fontSize: '9px' }}>{stats?.totalKhung > 0 ? Math.round((stats.lossCount / stats.totalKhung) * 100) : 0}%</div>
+              </div>
+            </div>
+
+            {/* Danh Sách Từng Khung Đã Qua */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '220px', overflowY: 'auto', paddingRight: '4px' }}>
+              {historyKhungs?.length === 0 ? (
+                <div style={{ color: '#64748b', fontSize: '12px', textAlign: 'center', padding: '16px' }}>
+                  Chưa có dữ liệu khung trước đó (Cần tối thiểu 3-4 kỳ kết quả).
+                </div>
+              ) : (
+                (showAllKhungHistory ? historyKhungs : historyKhungs.slice(0, 8)).map((khung, idx) => {
+                  const isWin = khung.status === 'WIN';
+                  return (
+                    <div 
+                      key={idx}
+                      style={{
+                        backgroundColor: '#1e293b',
+                        border: isWin ? '1px solid #059669' : '1px solid #b91c1c',
+                        borderRadius: '6px',
+                        padding: '8px 10px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '4px'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ color: '#93c5fd', fontWeight: 'bold', fontSize: '12px' }}>
+                            Khung #{khung.khungIndex}:
+                          </span>
+                          <span style={{ color: '#cbd5e1', fontSize: '11px' }}>
+                            {khung.predObj?.shortBadge || ''}
+                          </span>
+                        </div>
+
+                        <span style={{
+                          backgroundColor: isWin ? '#065f46' : '#7f1d1d',
+                          color: isWin ? '#6ee7b7' : '#fca5a5',
+                          fontSize: '11px',
+                          fontWeight: 'bold',
+                          padding: '1px 8px',
+                          borderRadius: '4px'
+                        }}>
+                          {isWin ? `✅ NỔ TAY ${khung.hitStep}` : '❌ GÃY KHUNG'}
+                        </span>
+                      </div>
+
+                      {/* Chi tiết từng tay trong khung này */}
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', fontSize: '10px' }}>
+                        {(khung.steps || []).map((step, sIdx) => {
+                          return (
+                            <span 
+                              key={sIdx}
+                              style={{
+                                backgroundColor: step.isHit ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.15)',
+                                color: step.isHit ? '#34d399' : '#f87171',
+                                border: step.isHit ? '1px solid #10b981' : '1px solid #ef4444',
+                                padding: '1px 6px',
+                                borderRadius: '3px',
+                                fontWeight: 'bold'
+                              }}
+                            >
+                              Tay {step.step} ({step.drawId ? step.drawId.slice(-3) : ''}): {step.resultHau} {step.isHit ? '✓ (Ăn)' : '✗'}
+                            </span>
+                          );
+                        })}
+                      </div>
+
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Nút Xem tất cả / Thu gọn nếu có nhiều khung */}
+            {historyKhungs?.length > 8 && (
+              <button 
+                onClick={() => setShowAllKhungHistory(!showAllKhungHistory)}
+                style={{
+                  backgroundColor: '#1e293b',
+                  color: '#93c5fd',
+                  border: '1px solid #334155',
+                  padding: '4px',
+                  borderRadius: '4px',
+                  fontSize: '11px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  textAlign: 'center'
+                }}
+              >
+                {showAllKhungHistory ? '▲ Thu gọn lịch sử khung' : `▼ Xem tất cả ${historyKhungs.length} Khung`}
+              </button>
+            )}
+
+          </div>
+
         </div>
 
       </div>
