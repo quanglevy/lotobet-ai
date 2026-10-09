@@ -722,7 +722,7 @@ const ExecutiveDashboard = ({
 
         {/* Ghi chú nguyên lý thuật toán */}
         <div style={{ fontSize: '11px', color: '#94a3b8', backgroundColor: 'rgba(15, 23, 42, 0.6)', padding: '6px 12px', borderRadius: '6px', borderLeft: '3px solid #10b981' }}>
-          <strong style={{ color: '#34d399' }}>💡 Nguyên lý tối ưu chạm:</strong> Kết hợp <strong style={{ color: '#facc15' }}>Chạm Rơi Hậu Nhị</strong> + <strong style={{ color: '#38bdf8' }}>Bóng Âm Dương</strong> + <strong style={{ color: '#a7f3d0' }}>Loại Trừ Số Bị 10 Cầu Đè</strong> để tạo ra dàn Chạm có tỷ lệ phủ sóng Hậu Nhị lên đến <strong>80% - 90%</strong>.
+          <strong style={{ color: '#34d399' }}>💡 Nguyên lý tối ưu chạm:</strong> Kết hợp <strong style={{ color: '#facc15' }}>Chạm Rơi Hậu Nhị</strong> + <strong style={{ color: '#38bdf8' }}>Bóng Âm Dương</strong> + <strong style={{ color: '#a7f3d0' }}>Loại Trừ Số Bị Các Cầu Đè</strong> để tạo ra dàn Chạm có tỷ lệ phủ sóng Hậu Nhị lên đến <strong>80% - 90%</strong>.
         </div>
 
       </div>
@@ -1413,7 +1413,7 @@ const ExecutiveDashboard = ({
             {/* Header Cột Trái */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#064e3b', padding: '8px 12px', borderRadius: '8px', border: '1px solid #059669', flexWrap: 'wrap', gap: '4px' }}>
               <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#6ee7b7', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                🟢 BẢNG 10 CẦU BẮT SỐ (CẦU 1 ➔ CẦU 10)
+                🟢 BẢNG CÁC CẦU BẮT SỐ (CẦU 1 ➔ CẦU {loaiSo?.bridgeStats?.length || 11})
               </span>
               <span style={{ fontSize: '11px', color: '#a7f3d0' }}>Đối Chiếu Song Song Cố Định</span>
             </div>
@@ -1421,7 +1421,7 @@ const ExecutiveDashboard = ({
             {/* Header Cột Phải */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#064e3b', padding: '8px 12px', borderRadius: '8px', border: '1px solid #059669', flexWrap: 'wrap', gap: '4px' }}>
               <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#6ee7b7', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                🟢 ĐỐI CHIẾU 10 CẦU KỲ VỪA XỔ (CẦU 1 ➔ CẦU 10):
+                🟢 ĐỐI CHIẾU CÁC CẦU KỲ VỪA XỔ (CẦU 1 ➔ CẦU {loaiSo?.bridgeStats?.length || 11}):
               </span>
               <span style={{ fontSize: '11px', color: '#a7f3d0' }}>
                 Về Hậu Nhị: <strong style={{ color: '#facc15' }}>{historyCheck?.resultHau || '--'}</strong>
@@ -1431,7 +1431,7 @@ const ExecutiveDashboard = ({
           </div>
 
           <div style={{ fontSize: '11px', color: '#94a3b8', paddingLeft: '4px', fontStyle: 'italic', marginTop: '-12px' }}>
-            * Bố cục cố định từ Cầu 1 đến Cầu 10 xếp song song trực tiếp với kết quả đối chiếu từng kỳ xổ.
+            * Bố cục cố định từ Cầu 1 đến Cầu {loaiSo?.bridgeStats?.length || 11} xếp song song trực tiếp với kết quả đối chiếu từng kỳ xổ.
           </div>
 
           {/* 10 HÀNG SONG SONG CHO 10 CẦU */}

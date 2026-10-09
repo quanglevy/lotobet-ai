@@ -12,14 +12,13 @@ export const getBongDuong = (d) => ({
 
 export const getBongAm = (d) => {
   const map = {
-    '0': '7', '7': '0',
-    '1': '4', '4': '1',
-    '2': '9', '9': '2',
+    '0': '9', '9': '0',
+    '1': '2', '2': '1',
     '3': '6', '6': '3',
-    '5': '8', '8': '5',
-    '4': '1', '6': '3', '8': '5', '9': '2'
+    '4': '8', '8': '4',
+    '5': '7', '7': '5'
   };
-  return map[d.toString()] || '0';
+  return map[d.toString()] || d.toString();
 };
 
 // Bộ số trả nhau đối ứng Kubet: 0<->9, 1<->7, 2<->5, 3<->6, 4<->8
@@ -420,8 +419,21 @@ export const CORE_BRIDGES = [
   },
   {
     id: 'cau_10',
-    name: 'Cầu 10 (Tổng 3 Con Đầu)',
-    shortName: 'Cầu 10 (3 Con Đầu)',
+    name: 'Cầu 10 (Bóng Âm Chục Ngàn)',
+    shortName: 'Cầu 10 (Bóng Âm Vạn)',
+    calc: (res) => getBongAm(res[0]),
+    calcFormula: (res) => {
+      const digit = getBongAm(res[0]);
+      return {
+        formulaText: `Bóng âm của Chục Ngàn(${res[0]}) ➔ Loại ${digit}`,
+        digit
+      };
+    }
+  },
+  {
+    id: 'cau_11',
+    name: 'Cầu 11 (Tổng 3 Con Đầu)',
+    shortName: 'Cầu 11 (3 Con Đầu)',
     calc: (res) => ((parseInt(res[0]) + parseInt(res[1]) + parseInt(res[2])) % 10).toString(),
     calcFormula: (res) => {
       const sum = parseInt(res[0]) + parseInt(res[1]) + parseInt(res[2]);
