@@ -13,6 +13,7 @@ import {
   getLoaiSoHauNhi,
   calculateSmartTouches,
   analyzeTienVsHau,
+  analyzeTXCLStrategy,
   calculateKhung3Ky
 } from "./utils/statistics";
 
@@ -67,6 +68,112 @@ const ExecutiveDashboard = ({
   const aiTienHau4 = analyzeTienVsHau(historyList10, smartTouches, 'touch4');
   const aiTienHau3 = analyzeTienVsHau(historyList10, smartTouches, 'touch3');
   const aiTienHauGhep25 = analyzeTienVsHau(historyList10, smartTouches, 'ghep25');
+  const aiTXCLInfo = analyzeTXCLStrategy(historyList10, txcl);
+
+  const renderAITXCLBox = (aiInfo) => {
+    if (!aiInfo || !historyList10 || historyList10.length === 0) return null;
+    const isTX = aiInfo.recommendation === 'TAI_XIU';
+    const isBoth = aiInfo.recommendation === 'CA_HAI';
+
+    const borderColor = isBoth ? '#10b981' : (isTX ? '#06b6d4' : '#ec4899');
+    const bgColor = isBoth ? 'rgba(6, 78, 59, 0.35)' : (isTX ? 'rgba(8, 51, 68, 0.45)' : 'rgba(80, 7, 36, 0.45)');
+    const badgeBg = isBoth ? '#059669' : (isTX ? '#0284c7' : '#db2777');
+    const accentText = isBoth ? '#34d399' : (isTX ? '#38bdf8' : '#f472b6');
+
+    return (
+      <div style={{
+        marginTop: '8px',
+        padding: '10px',
+        borderRadius: '8px',
+        backgroundColor: bgColor,
+        border: `1.5px solid ${borderColor}`,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '6px',
+        boxShadow: `0 0 12px ${isBoth ? 'rgba(16, 185, 129, 0.25)' : (isTX ? 'rgba(6, 182, 212, 0.25)' : 'rgba(236, 72, 153, 0.25)')}`
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+          <span style={{ fontSize: '11px', color: '#e2e8f0', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            🤖 AI PHÂN TÍCH: TÀI XỈU HAY CHẴN LẺ TỐT HƠN?
+          </span>
+          <span style={{
+            fontSize: '10px',
+            fontWeight: 'bold',
+            backgroundColor: 'rgba(0,0,0,0.45)',
+            color: accentText,
+            padding: '2px 7px',
+            borderRadius: '4px',
+            border: `1px solid ${borderColor}`
+          }}>
+            Độ tin cậy: {aiInfo.confidence}%
+          </span>
+        </div>
+
+        {/* Kết luận nổi bật */}
+        <div style={{
+          backgroundColor: badgeBg,
+          color: '#ffffff',
+          fontWeight: '900',
+          fontSize: '12px',
+          padding: '6px 10px',
+          borderRadius: '6px',
+          textAlign: 'center',
+          letterSpacing: '0.02em',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
+        }}>
+          {aiInfo.badgeText}
+        </div>
+
+        {/* Bảng so sánh nhanh Tài Xỉu vs Chẵn Lẻ */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginTop: '2px' }}>
+          <div style={{
+            backgroundColor: 'rgba(15, 23, 42, 0.75)',
+            padding: '6px 8px',
+            borderRadius: '6px',
+            border: isTX || isBoth ? '1px solid #06b6d4' : '1px solid #334155',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '2px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '10.5px', fontWeight: 'bold', color: '#38bdf8' }}>🎲 KÈO TÀI XỈU ({txcl?.tx})</span>
+              <span style={{ fontSize: '11px', fontWeight: '900', color: aiInfo.txRate10 >= 70 ? '#34d399' : (aiInfo.txRate10 >= 50 ? '#fbbf24' : '#f87171') }}>
+                {aiInfo.txWins10}/{aiInfo.total10} ({aiInfo.txRate10}%)
+              </span>
+            </div>
+            <span style={{ fontSize: '9.5px', color: '#cbd5e1' }}>
+              5 kỳ gần: <strong>{aiInfo.txWins5}/{aiInfo.total5}</strong> • {aiInfo.txStatusText}
+            </span>
+          </div>
+
+          <div style={{
+            backgroundColor: 'rgba(15, 23, 42, 0.75)',
+            padding: '6px 8px',
+            borderRadius: '6px',
+            border: !isTX || isBoth ? '1px solid #ec4899' : '1px solid #334155',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '2px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '10.5px', fontWeight: 'bold', color: '#f472b6' }}>⚖️ KÈO CHẴN LẺ ({txcl?.cl})</span>
+              <span style={{ fontSize: '11px', fontWeight: '900', color: aiInfo.clRate10 >= 70 ? '#34d399' : (aiInfo.clRate10 >= 50 ? '#fbbf24' : '#f87171') }}>
+                {aiInfo.clWins10}/{aiInfo.total10} ({aiInfo.clRate10}%)
+              </span>
+            </div>
+            <span style={{ fontSize: '9.5px', color: '#cbd5e1' }}>
+              5 kỳ gần: <strong>{aiInfo.clWins5}/{aiInfo.total5}</strong> • {aiInfo.clStatusText}
+            </span>
+          </div>
+        </div>
+
+        {/* Lý do phân tích chi tiết */}
+        <div style={{ fontSize: '10.5px', color: '#e2e8f0', lineHeight: '1.4', backgroundColor: 'rgba(0,0,0,0.3)', padding: '5px 8px', borderRadius: '5px' }}>
+          💡 <strong>Phân tích AI:</strong> {aiInfo.reasonText}
+        </div>
+      </div>
+    );
+  };
 
   const renderAITienVsHauBox = (aiInfo) => {
     if (!aiInfo || !historyList10 || historyList10.length === 0) return null;
@@ -845,7 +952,75 @@ const ExecutiveDashboard = ({
             {renderStreak10Touch4()}
           </div>
 
-          {/* Box 2: TOP 3 CHẠM CỨNG (DÀN 51 SỐ - KHUYÊN DÙNG CỰC MẠNH) */}
+          {/* Box 2: TỔNG HỢP KÈO TÀI XỈU & CHẴN LẺ (TỔNG 5 SỐ - KHUNG 3 TAY + AI PHÂN TÍCH) */}
+          <div style={{ backgroundColor: '#0f172a', padding: '12px', borderRadius: '10px', border: '1.5px solid #ec4899', boxShadow: '0 0 10px rgba(236, 72, 153, 0.2)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '4px' }}>
+              <span style={{ color: '#f472b6', fontWeight: 'bold', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '16px' }}>🎲</span> ⚡ DỰ ĐOÁN TÀI XỈU & CHẴN LẺ (TỔNG 5 SỐ):
+              </span>
+              <span style={{ backgroundColor: '#831843', color: '#fbcfe8', fontSize: '11px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '4px', border: '1px solid #db2777' }}>
+                Hội Đồng 14 Cầu AI
+              </span>
+            </div>
+
+            {/* 2 Khung Dự Đoán: TÀI XỈU & CHẴN LẺ */}
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+              {/* Dự đoán Tài Xỉu */}
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px', 
+                backgroundColor: '#1e293b', 
+                padding: '6px 14px', 
+                borderRadius: '8px', 
+                border: '1.5px solid #06b6d4',
+                boxShadow: '0 0 8px rgba(6, 182, 212, 0.25)'
+              }}>
+                <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 'bold' }}>TÀI XỈU:</span>
+                <span style={{ color: txcl.tx === 'TÀI' ? '#38bdf8' : '#fb923c', fontWeight: '900', fontSize: '1.35rem' }}>
+                  {txcl.tx}
+                </span>
+                <span style={{ backgroundColor: 'rgba(6, 182, 212, 0.2)', color: '#67e8f9', fontSize: '10.5px', fontWeight: 'bold', padding: '2px 7px', borderRadius: '4px' }}>
+                  {txcl.txRate || txcl.rate || '88%'}
+                </span>
+              </div>
+
+              {/* Dự đoán Chẵn Lẻ */}
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px', 
+                backgroundColor: '#1e293b', 
+                padding: '6px 14px', 
+                borderRadius: '8px', 
+                border: '1.5px solid #ec4899',
+                boxShadow: '0 0 8px rgba(236, 72, 153, 0.25)'
+              }}>
+                <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 'bold' }}>CHẴN LẺ:</span>
+                <span style={{ color: txcl.cl === 'CHẴN' ? '#facc15' : '#f472b6', fontWeight: '900', fontSize: '1.35rem' }}>
+                  {txcl.cl}
+                </span>
+                <span style={{ backgroundColor: 'rgba(236, 72, 153, 0.2)', color: '#fbcfe8', fontSize: '10.5px', fontWeight: 'bold', padding: '2px 7px', borderRadius: '4px' }}>
+                  {txcl.clRate || '88%'}
+                </span>
+              </div>
+            </div>
+
+            {/* Lý do cầu AI */}
+            {txcl.reason && (
+              <div style={{ fontSize: '11px', color: '#cbd5e1', backgroundColor: 'rgba(15, 23, 42, 0.6)', padding: '5px 10px', borderRadius: '5px', borderLeft: '3px solid #ec4899' }}>
+                <strong style={{ color: '#f472b6' }}>Cơ sở cầu:</strong> {txcl.reason}
+              </div>
+            )}
+
+            {/* Thống kê 10 kỳ trực tiếp của Tài Xỉu & Chẵn Lẻ */}
+            {renderStreak10TXCL()}
+
+            {/* Hộp AI Phân tích chuyên sâu Tài Xỉu vs Chẵn Lẻ */}
+            {renderAITXCLBox(aiTXCLInfo)}
+          </div>
+
+          {/* Box 3: TOP 3 CHẠM CỨNG (DÀN 51 SỐ - KHUYÊN DÙNG CỰC MẠNH) */}
           <div style={{ backgroundColor: '#0f172a', padding: '12px', borderRadius: '10px', border: '1.5px solid #38bdf8', boxShadow: '0 0 10px rgba(56, 189, 248, 0.2)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '4px' }}>
               <span style={{ color: '#38bdf8', fontWeight: 'bold', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -894,7 +1069,7 @@ const ExecutiveDashboard = ({
             {renderStreak10Touch3()}
           </div>
 
-          {/* Box 3: DÀN GHÉP TRONG 25 SỐ (DÀN RÚT GỌN TỪ 5 CHẠM VIP) */}
+          {/* Box 4: DÀN GHÉP TRONG 25 SỐ (DÀN RÚT GỌN TỪ 5 CHẠM VIP) */}
           <div style={{ backgroundColor: '#0f172a', padding: '12px', borderRadius: '10px', border: '1.5px solid #a855f7', boxShadow: '0 0 10px rgba(168, 85, 247, 0.2)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '4px' }}>
               <span style={{ color: '#c084fc', fontWeight: 'bold', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1569,73 +1744,6 @@ const ExecutiveDashboard = ({
 
             {/* Thống kê 10 kỳ trực tiếp ngay trong Kèo Loại 3 Số */}
             {renderStreak10Loai3()}
-          </div>
-        </div>
-
-        {/* 3. MỤC TÀI XỈU & CHẴN LẺ (TỔNG 5 SỐ - KHUNG 3 TAY) */}
-        <div style={{ backgroundColor: '#0f172a', padding: '12px', borderRadius: '10px', border: '1.5px solid #ec4899', boxShadow: '0 0 10px rgba(236, 72, 153, 0.2)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '4px' }}>
-            <span style={{ color: '#f472b6', fontWeight: 'bold', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '16px' }}>🎲</span> ⚡ TỔNG HỢP KÈO TÀI XỈU - CHẴN LẺ (TỔNG 5 SỐ):
-            </span>
-            <span style={{ backgroundColor: '#831843', color: '#fbcfe8', fontSize: '11px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '4px', border: '1px solid #db2777' }}>
-              Khung 3 Tay - Bắt Nhịp AI
-            </span>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {/* 2 Khung Dự Đoán: TÀI XỈU & CHẴN LẺ */}
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-              {/* Dự đoán Tài Xỉu */}
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '8px', 
-                backgroundColor: '#1e293b', 
-                padding: '6px 14px', 
-                borderRadius: '8px', 
-                border: '1.5px solid #06b6d4',
-                boxShadow: '0 0 8px rgba(6, 182, 212, 0.25)'
-              }}>
-                <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 'bold' }}>TÀI XỈU:</span>
-                <span style={{ color: txcl.tx === 'TÀI' ? '#38bdf8' : '#fb923c', fontWeight: '900', fontSize: '1.35rem' }}>
-                  {txcl.tx}
-                </span>
-                <span style={{ backgroundColor: 'rgba(6, 182, 212, 0.2)', color: '#67e8f9', fontSize: '10.5px', fontWeight: 'bold', padding: '2px 7px', borderRadius: '4px' }}>
-                  {txcl.txRate || txcl.rate || '85%'}
-                </span>
-              </div>
-
-              {/* Dự đoán Chẵn Lẻ */}
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '8px', 
-                backgroundColor: '#1e293b', 
-                padding: '6px 14px', 
-                borderRadius: '8px', 
-                border: '1.5px solid #ec4899',
-                boxShadow: '0 0 8px rgba(236, 72, 153, 0.25)'
-              }}>
-                <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 'bold' }}>CHẴN LẺ:</span>
-                <span style={{ color: txcl.cl === 'CHẴN' ? '#facc15' : '#f472b6', fontWeight: '900', fontSize: '1.35rem' }}>
-                  {txcl.cl}
-                </span>
-                <span style={{ backgroundColor: 'rgba(236, 72, 153, 0.2)', color: '#fbcfe8', fontSize: '10.5px', fontWeight: 'bold', padding: '2px 7px', borderRadius: '4px' }}>
-                  {txcl.clRate || '80%'}
-                </span>
-              </div>
-            </div>
-
-            {/* Lý do cầu AI */}
-            {txcl.reason && (
-              <div style={{ fontSize: '11.5px', color: '#cbd5e1', backgroundColor: 'rgba(15, 23, 42, 0.6)', padding: '5px 10px', borderRadius: '5px', borderLeft: '3px solid #ec4899' }}>
-                <strong style={{ color: '#f472b6' }}>Cơ sở cầu:</strong> {txcl.reason}
-              </div>
-            )}
-
-            {/* Thống kê 10 kỳ trực tiếp của Tài Xỉu & Chẵn Lẻ */}
-            {renderStreak10TXCL()}
           </div>
         </div>
 

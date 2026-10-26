@@ -1785,3 +1785,183 @@ export const calculateKhung3Ky = (rawData, strategyType = 'touch3') => {
   };
 };
 
+// ============================================================================
+// 🤖 HỆ THỐNG AI PHÂN TÍCH CHUYÊN SÂU: TÀI XỈU HAY CHẴN LẺ TỐT HƠN?
+// ============================================================================
+export const analyzeTXCLStrategy = (historyList10 = [], txclPred = null) => {
+  if (!historyList10 || historyList10.length === 0) {
+    return {
+      recommendation: 'TAI_XIU',
+      badgeText: `🎲 AI KHUYÊN ĐÁNH: KÈO TÀI XỈU (${txclPred?.tx || 'TÀI'})`,
+      subBadge: 'Khởi tạo phân tích nhịp cầu Tài Xỉu & Chẵn Lẻ',
+      txRate10: 0,
+      clRate10: 0,
+      txWins10: 0,
+      clWins10: 0,
+      txWins5: 0,
+      clWins5: 0,
+      txRate5: 0,
+      clRate5: 0,
+      total10: 0,
+      total5: 0,
+      txStatusText: 'Đang chờ dữ liệu',
+      clStatusText: 'Đang chờ dữ liệu',
+      reasonText: 'Cần thêm dữ liệu kỳ quay để AI so sánh nhịp nổ giữa Tài Xỉu và Chẵn Lẻ.',
+      confidence: 85,
+      colorTheme: 'cyan'
+    };
+  }
+
+  const total10 = historyList10.length;
+  const recent5 = historyList10.slice(0, Math.min(5, total10));
+  const total5 = recent5.length;
+
+  const isTXHit = (h) => Boolean(h && h.pTXCL && h.actualTXCL && h.pTXCL.tx === h.actualTXCL.tx);
+  const isCLHit = (h) => Boolean(h && h.pTXCL && h.actualTXCL && h.pTXCL.cl === h.actualTXCL.cl);
+
+  const txWins10 = historyList10.filter(isTXHit).length;
+  const clWins10 = historyList10.filter(isCLHit).length;
+
+  const txRate10 = Math.round((txWins10 / total10) * 100);
+  const clRate10 = Math.round((clWins10 / total10) * 100);
+
+  const txWins5 = recent5.filter(isTXHit).length;
+  const clWins5 = recent5.filter(isCLHit).length;
+
+  const txRate5 = total5 > 0 ? Math.round((txWins5 / total5) * 100) : 0;
+  const clRate5 = total5 > 0 ? Math.round((clWins5 / total5) * 100) : 0;
+
+  const getStreak = (checkFn) => {
+    let winStreak = 0;
+    let loseStreak = 0;
+    for (let i = 0; i < historyList10.length; i++) {
+      const hit = checkFn(historyList10[i]);
+      if (i === 0) {
+        if (hit) winStreak = 1;
+        else loseStreak = 1;
+      } else {
+        if (winStreak > 0 && hit) winStreak++;
+        else if (loseStreak > 0 && !hit) loseStreak++;
+        else break;
+      }
+    }
+    return { winStreak, loseStreak };
+  };
+
+  const txStreak = getStreak(isTXHit);
+  const clStreak = getStreak(isCLHit);
+
+  const evaluateMode = (rate10, rate5, wins5, streak, confStr) => {
+    const predConf = parseInt(confStr) || 85;
+    let score = rate10 * 0.45 + rate5 * 0.35 + predConf * 0.20;
+    let statusText = '';
+
+    if (streak.winStreak >= 3) {
+      score += 22;
+      statusText = `🔥 Đang thông ${streak.winStreak} kỳ liên tiếp`;
+    } else if (streak.winStreak === 2) {
+      score += 18;
+      statusText = `⚡ Đang thông 2 kỳ (Nhịp chuẩn)`;
+    } else if (streak.winStreak === 1) {
+      score += 12;
+      statusText = `✅ Vừa ăn kỳ trước (Đà thuận)`;
+    } else if (streak.loseStreak === 1) {
+      if (rate10 >= 70 && wins5 >= Math.ceil(total5 * 0.6)) {
+        score += 20;
+        statusText = `💎 Vừa nghỉ 1 kỳ (Điểm vàng bắt Tay 2)`;
+      } else {
+        score -= 8;
+        statusText = `⚠️ Vừa trượt 1 kỳ`;
+      }
+    } else if (streak.loseStreak === 2) {
+      if (rate10 >= 75) {
+        score += 8;
+        statusText = `🔄 Nghỉ 2 kỳ (Canh hồi nhịp Tay 3)`;
+      } else {
+        score -= 25;
+        statusText = `❌ Đang gãy 2 kỳ liên tiếp`;
+      }
+    } else if (streak.loseStreak >= 3) {
+      score -= 40;
+      statusText = `🚨 Đang gãy ${streak.loseStreak} kỳ (Nên né)`;
+    }
+
+    return { score, statusText };
+  };
+
+  const txEval = evaluateMode(txRate10, txRate5, txWins5, txStreak, txclPred?.txRate);
+  const clEval = evaluateMode(clRate10, clRate5, clWins5, clStreak, txclPred?.clRate);
+
+  const diff = txEval.score - clEval.score;
+  const txTarget = txclPred?.tx || 'TÀI';
+  const clTarget = txclPred?.cl || 'CHẴN';
+
+  let recommendation = 'TAI_XIU';
+  let badgeText = '';
+  let subBadge = '';
+  let reasonText = '';
+  let colorTheme = 'cyan';
+  let confidence = 85;
+
+  if (diff >= 5) {
+    recommendation = 'TAI_XIU';
+    colorTheme = 'cyan';
+    confidence = Math.min(96, Math.max(78, Math.round(txEval.score)));
+    badgeText = `🎲 AI KHUYÊN ĐÁNH MẠNH: TÀI XỈU ➔ ĐÁNH [${txTarget}] TỐT HƠN`;
+    subBadge = `Cầu Tài Xỉu vượt trội (+${Math.round(diff)} điểm AI)`;
+    reasonText = `Trong ${total10} kỳ qua, kèo TÀI XỈU ăn ${txWins10}/${total10} kỳ (${txRate10}%), 5 kỳ gần nhất trúng ${txWins5}/${total5} (${txEval.statusText}). Áp đảo hơn hẳn CHẴN LẺ (${clWins10}/${total10} kỳ - ${clRate10}%, ${clEval.statusText}). Kỳ này ưu tiên vào tiền [${txTarget}] (${txclPred?.txPattern || 'Hội đồng 7 cầu TX'}).`;
+  } else if (diff <= -5) {
+    recommendation = 'CHAN_LE';
+    colorTheme = 'pink';
+    confidence = Math.min(96, Math.max(78, Math.round(clEval.score)));
+    badgeText = `⚖️ AI KHUYÊN ĐÁNH MẠNH: CHẴN LẺ ➔ ĐÁNH [${clTarget}] TỐT HƠN`;
+    subBadge = `Cầu Chẵn Lẻ vượt trội (+${Math.round(Math.abs(diff))} điểm AI)`;
+    reasonText = `Trong ${total10} kỳ qua, kèo CHẴN LẺ ăn ${clWins10}/${total10} kỳ (${clRate10}%), 5 kỳ gần nhất trúng ${clWins5}/${total5} (${clEval.statusText}). Ổn định hơn TÀI XỈU (${txWins10}/${total10} kỳ - ${txRate10}%, ${txEval.statusText}). Kỳ này ưu tiên vào tiền [${clTarget}] (${txclPred?.clPattern || 'Hội đồng 7 cầu CL'}).`;
+  } else {
+    if (txRate10 >= 75 && clRate10 >= 75) {
+      recommendation = 'CA_HAI';
+      colorTheme = 'emerald';
+      confidence = Math.min(96, Math.round((txRate10 + clRate10) / 2 + 4));
+      badgeText = `💎 SONG THỦ ĐẠI THẮNG: ĐÁNH CẢ [${txTarget}] & [${clTarget}]`;
+      subBadge = `Cả Tài Xỉu (${txRate10}%) & Chẵn Lẻ (${clRate10}%) đều đang ăn cực thông`;
+      reasonText = `Cả 2 kèo đều đạt phong độ đỉnh cao: Tài Xỉu trúng ${txWins10}/${total10} (${txRate10}% - ${txEval.statusText}) và Chẵn Lẻ trúng ${clWins10}/${total10} (${clRate10}% - ${clEval.statusText}). Có thể vào đều cả [${txTarget}] và [${clTarget}].`;
+    } else if (txEval.score >= clEval.score) {
+      recommendation = 'TAI_XIU';
+      colorTheme = 'cyan';
+      confidence = Math.max(75, txRate10 + 8);
+      badgeText = `🎲 AI KHUYÊN ĐÁNH: ƯU TIÊN TÀI XỈU ➔ [${txTarget}]`;
+      subBadge = `Nhịp cầu Tài Xỉu sáng hơn Chẵn Lẻ`;
+      reasonText = `Tài Xỉu đạt ${txWins10}/${total10} kỳ (${txRate10}%, 5 kỳ gần ăn ${txWins5}/${total5} - ${txEval.statusText}), có độ tin cậy cao hơn Chẵn Lẻ (${clWins10}/${total10} kỳ - ${clRate10}%). Khuyên chọn [${txTarget}].`;
+    } else {
+      recommendation = 'CHAN_LE';
+      colorTheme = 'pink';
+      confidence = Math.max(75, clRate10 + 8);
+      badgeText = `⚖️ AI KHUYÊN ĐÁNH: ƯU TIÊN CHẴN LẺ ➔ [${clTarget}]`;
+      subBadge = `Nhịp cầu Chẵn Lẻ sáng hơn Tài Xỉu`;
+      reasonText = `Chẵn Lẻ đạt ${clWins10}/${total10} kỳ (${clRate10}%, 5 kỳ gần ăn ${clWins5}/${total5} - ${clEval.statusText}), có độ tin cậy cao hơn Tài Xỉu (${txWins10}/${total10} kỳ - ${txRate10}%). Khuyên chọn [${clTarget}].`;
+    }
+  }
+
+  return {
+    recommendation,
+    badgeText,
+    subBadge,
+    txRate10,
+    clRate10,
+    txWins10,
+    clWins10,
+    txWins5,
+    clWins5,
+    txRate5,
+    clRate5,
+    total10,
+    total5,
+    txStatusText: txEval.statusText,
+    clStatusText: clEval.statusText,
+    reasonText,
+    confidence,
+    colorTheme
+  };
+};
+
+
