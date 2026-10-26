@@ -841,34 +841,6 @@ const ExecutiveDashboard = ({
               </div>
             </div>
 
-            {/* Nút copy dàn 64 số & 4 chạm */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
-              {renderCopyButton(smartTouches?.dan64So || [], "Dàn 64 Số Hậu Nhị (4 Chạm Cứng)")}
-              <button 
-                onClick={() => {
-                  navigator.clipboard.writeText((smartTouches?.top4Touches || []).join(',')).then(() => {
-                    alert('Đã copy 4 Chạm Cứng: ' + (smartTouches?.top4Touches || []).join(','));
-                  });
-                }}
-                style={{ 
-                  width: "fit-content", 
-                  backgroundColor: "#064e3b", 
-                  color: "#6ee7b7", 
-                  border: "1px solid #059669", 
-                  padding: "4px 10px", 
-                  borderRadius: "5px", 
-                  fontSize: "11px", 
-                  fontWeight: "bold", 
-                  display: "flex", 
-                  alignItems: "center", 
-                  gap: "4px", 
-                  cursor: "pointer" 
-                }}
-              >
-                <Copy size={13} /> Copy 4 Chạm: [{(smartTouches?.top4Touches || []).join(',')}]
-              </button>
-            </div>
-
             {/* Thống kê 10 kỳ 4 chạm */}
             {renderStreak10Touch4()}
           </div>
@@ -916,34 +888,6 @@ const ExecutiveDashboard = ({
                   );
                 })}
               </div>
-            </div>
-
-            {/* Nút copy dàn 51 số & 3 chạm */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
-              {renderCopyButton(smartTouches?.dan51So || [], "Dàn 51 Số Hậu Nhị (3 Chạm Cứng)")}
-              <button 
-                onClick={() => {
-                  navigator.clipboard.writeText((smartTouches?.top3Touches || []).join(',')).then(() => {
-                    alert('Đã copy 3 Chạm Cứng: ' + (smartTouches?.top3Touches || []).join(','));
-                  });
-                }}
-                style={{ 
-                  width: "fit-content", 
-                  backgroundColor: "#0c4a6e", 
-                  color: "#7dd3fc", 
-                  border: "1px solid #0284c7", 
-                  padding: "4px 10px", 
-                  borderRadius: "5px", 
-                  fontSize: "11px", 
-                  fontWeight: "bold", 
-                  display: "flex", 
-                  alignItems: "center", 
-                  gap: "4px", 
-                  cursor: "pointer" 
-                }}
-              >
-                <Copy size={13} /> Copy 3 Chạm: [{(smartTouches?.top3Touches || []).join(',')}]
-              </button>
             </div>
 
             {/* Thống kê 10 kỳ 3 chạm */}
