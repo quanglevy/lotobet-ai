@@ -12,6 +12,7 @@ import {
   getBacNhoAnalysis,
   getLoaiSoHauNhi,
   calculateSmartTouches,
+  analyzeTienVsHau,
   calculateKhung3Ky
 } from "./utils/statistics";
 
@@ -43,19 +44,134 @@ const ExecutiveDashboard = ({
   const wins4 = historyList10.filter(h => h && h.isLoai4Hit).length;
   const wins3 = historyList10.filter(h => h && h.isLoai3Hit).length;
   const winsTouch4 = historyList10.filter(h => h && h.isTouch4Hit).length;
+  const winsTouch4Tien = historyList10.filter(h => h && h.isTouch4TienHit).length;
   const winsTouch3 = historyList10.filter(h => h && h.isTouch3Hit).length;
+  const winsTouch3Tien = historyList10.filter(h => h && h.isTouch3TienHit).length;
   const winsTouch2 = historyList10.filter(h => h && h.isTouch2Hit).length;
   const winsGhep25 = historyList10.filter(h => h && h.isGhep25Hit).length;
+  const winsGhep25Tien = historyList10.filter(h => h && h.isGhep25TienHit).length;
   const winsTX = historyList10.filter(h => h && h.pTXCL && h.actualTXCL && h.pTXCL.tx === h.actualTXCL.tx).length;
   const winsCL = historyList10.filter(h => h && h.pTXCL && h.actualTXCL && h.pTXCL.cl === h.actualTXCL.cl).length;
   const total = historyList10.length;
   const rate4 = total > 0 ? Math.round((wins4 / total) * 100) : 0;
   const rate3 = total > 0 ? Math.round((wins3 / total) * 100) : 0;
   const rateTouch4 = total > 0 ? Math.round((winsTouch4 / total) * 100) : 0;
+  const rateTouch4Tien = total > 0 ? Math.round((winsTouch4Tien / total) * 100) : 0;
   const rateTouch3 = total > 0 ? Math.round((winsTouch3 / total) * 100) : 0;
+  const rateTouch3Tien = total > 0 ? Math.round((winsTouch3Tien / total) * 100) : 0;
   const rateGhep25 = total > 0 ? Math.round((winsGhep25 / total) * 100) : 0;
+  const rateGhep25Tien = total > 0 ? Math.round((winsGhep25Tien / total) * 100) : 0;
   const rateTX = total > 0 ? Math.round((winsTX / total) * 100) : 0;
   const rateCL = total > 0 ? Math.round((winsCL / total) * 100) : 0;
+
+  const aiTienHau4 = analyzeTienVsHau(historyList10, smartTouches, 'touch4');
+  const aiTienHau3 = analyzeTienVsHau(historyList10, smartTouches, 'touch3');
+  const aiTienHauGhep25 = analyzeTienVsHau(historyList10, smartTouches, 'ghep25');
+
+  const renderAITienVsHauBox = (aiInfo) => {
+    if (!aiInfo || !historyList10 || historyList10.length === 0) return null;
+    const isTien = aiInfo.recommendation === 'TIEN_NHI';
+    const isBoth = aiInfo.recommendation === 'CA_HAI';
+
+    const borderColor = isTien ? '#f59e0b' : (isBoth ? '#38bdf8' : '#10b981');
+    const bgColor = isTien ? 'rgba(120, 53, 15, 0.35)' : (isBoth ? 'rgba(12, 74, 110, 0.35)' : 'rgba(6, 78, 59, 0.35)');
+    const badgeBg = isTien ? '#d97706' : (isBoth ? '#0284c7' : '#059669');
+    const accentText = isTien ? '#fbbf24' : (isBoth ? '#38bdf8' : '#34d399');
+
+    return (
+      <div style={{
+        marginTop: '8px',
+        padding: '10px',
+        borderRadius: '8px',
+        backgroundColor: bgColor,
+        border: `1.5px solid ${borderColor}`,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '6px',
+        boxShadow: `0 0 12px ${isTien ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)'}`
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+          <span style={{ fontSize: '11px', color: '#e2e8f0', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            🤖 AI PHÂN TÍCH: TIỀN NHỊ HAY HẬU NHỊ TỐT HƠN?
+          </span>
+          <span style={{
+            fontSize: '10px',
+            fontWeight: 'bold',
+            backgroundColor: 'rgba(0,0,0,0.45)',
+            color: accentText,
+            padding: '2px 7px',
+            borderRadius: '4px',
+            border: `1px solid ${borderColor}`
+          }}>
+            Độ tin cậy: {aiInfo.confidence}%
+          </span>
+        </div>
+
+        {/* Kết luận nổi bật */}
+        <div style={{
+          backgroundColor: badgeBg,
+          color: '#ffffff',
+          fontWeight: '900',
+          fontSize: '12px',
+          padding: '6px 10px',
+          borderRadius: '6px',
+          textAlign: 'center',
+          letterSpacing: '0.02em',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
+        }}>
+          {aiInfo.badgeText}
+        </div>
+
+        {/* Bảng so sánh nhanh Tiền Nhị vs Hậu Nhị */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginTop: '2px' }}>
+          <div style={{
+            backgroundColor: 'rgba(15, 23, 42, 0.75)',
+            padding: '6px 8px',
+            borderRadius: '6px',
+            border: isTien || isBoth ? '1px solid #f59e0b' : '1px solid #334155',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '2px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '10.5px', fontWeight: 'bold', color: '#fbbf24' }}>🔥 TIỀN NHỊ (2 Số Đầu)</span>
+              <span style={{ fontSize: '11px', fontWeight: '900', color: aiInfo.tienRate10 >= 70 ? '#34d399' : (aiInfo.tienRate10 >= 50 ? '#fbbf24' : '#f87171') }}>
+                {aiInfo.tienWins10}/{aiInfo.total10} ({aiInfo.tienRate10}%)
+              </span>
+            </div>
+            <span style={{ fontSize: '9.5px', color: '#cbd5e1' }}>
+              5 kỳ gần: <strong>{aiInfo.tienWins5}/{aiInfo.total5}</strong> • {aiInfo.tienStatusText}
+            </span>
+          </div>
+
+          <div style={{
+            backgroundColor: 'rgba(15, 23, 42, 0.75)',
+            padding: '6px 8px',
+            borderRadius: '6px',
+            border: !isTien || isBoth ? '1px solid #10b981' : '1px solid #334155',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '2px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '10.5px', fontWeight: 'bold', color: '#34d399' }}>⚡ HẬU NHỊ (2 Số Cuối)</span>
+              <span style={{ fontSize: '11px', fontWeight: '900', color: aiInfo.hauRate10 >= 70 ? '#34d399' : (aiInfo.hauRate10 >= 50 ? '#fbbf24' : '#f87171') }}>
+                {aiInfo.hauWins10}/{aiInfo.total10} ({aiInfo.hauRate10}%)
+              </span>
+            </div>
+            <span style={{ fontSize: '9.5px', color: '#cbd5e1' }}>
+              5 kỳ gần: <strong>{aiInfo.hauWins5}/{aiInfo.total5}</strong> • {aiInfo.hauStatusText}
+            </span>
+          </div>
+        </div>
+
+        {/* Lý do phân tích chi tiết */}
+        <div style={{ fontSize: '10.5px', color: '#e2e8f0', lineHeight: '1.4', backgroundColor: 'rgba(0,0,0,0.3)', padding: '5px 8px', borderRadius: '5px' }}>
+          💡 <strong>Phân tích AI:</strong> {aiInfo.reasonText}
+        </div>
+      </div>
+    );
+  };
 
 
   const renderStreak10Loai4 = () => {
@@ -154,44 +270,91 @@ const ExecutiveDashboard = ({
     if (!historyList10 || historyList10.length === 0) return null;
 
     return (
-      <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed #334155', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
-          <span style={{ fontSize: '11px', color: '#34d399', fontWeight: 'bold' }}>
-            ⚡ KẾT QUẢ 10 KỲ (4 CHẠM CỨNG - DÀN 64S):
-          </span>
-          <span style={{ fontSize: '11px', fontWeight: 'bold', color: winsTouch4 >= 7 ? '#34d399' : (winsTouch4 >= 5 ? '#fbbf24' : '#f87171'), backgroundColor: 'rgba(0,0,0,0.5)', padding: '2px 8px', borderRadius: '4px', border: '1px solid #475569' }}>
-            {winsTouch4}/{total} Trúng ({rateTouch4}%)
-          </span>
+      <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed #334155', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {/* Thống kê 10 kỳ HẬU NHỊ */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+            <span style={{ fontSize: '11px', color: '#34d399', fontWeight: 'bold' }}>
+              ⚡ KẾT QUẢ 10 KỲ HẬU NHỊ (4 CHẠM - 64S):
+            </span>
+            <span style={{ fontSize: '11px', fontWeight: 'bold', color: winsTouch4 >= 7 ? '#34d399' : (winsTouch4 >= 5 ? '#fbbf24' : '#f87171'), backgroundColor: 'rgba(0,0,0,0.5)', padding: '2px 8px', borderRadius: '4px', border: '1px solid #475569' }}>
+              {winsTouch4}/{total} Trúng ({rateTouch4}%)
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {[...historyList10].reverse().map((h, idx) => {
+              const isWin = h.isTouch4Hit;
+              const drawNum = h.drawId ? h.drawId.slice(-3) : (idx + 1);
+              return (
+                <div 
+                  key={idx}
+                  title={`Kỳ ${drawNum} (Hậu Nhị): ${isWin ? 'Trúng (Thắng)' : 'Trượt (Thua)'} | Về Hậu: ${h.resultHau || ''} | 4 Chạm: [${(h.pTouches?.top4Touches || []).join(',')}]`}
+                  style={{
+                    backgroundColor: isWin ? '#065f46' : '#7f1d1d',
+                    border: isWin ? '1px solid #34d399' : '1px solid #ef4444',
+                    color: 'white',
+                    borderRadius: '5px',
+                    padding: '2px 6px',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    boxShadow: isWin ? '0 1px 4px rgba(52, 211, 153, 0.4)' : '0 1px 4px rgba(239, 68, 68, 0.4)'
+                  }}
+                >
+                  <span style={{ color: '#cbd5e1', fontSize: '10px' }}>{drawNum}:</span>
+                  <span style={{ fontSize: '12px' }}>{isWin ? '✅' : '❌'}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
-          {[...historyList10].reverse().map((h, idx) => {
-            const isWin = h.isTouch4Hit;
-            const drawNum = h.drawId ? h.drawId.slice(-3) : (idx + 1);
-            return (
-              <div 
-                key={idx}
-                title={`Kỳ ${drawNum}: ${isWin ? 'Trúng (Thắng)' : 'Trượt (Thua)'} | Về Hậu: ${h.resultHau || ''} | 4 Chạm: [${(h.pTouches?.top4Touches || []).join(',')}]`}
-                style={{
-                  backgroundColor: isWin ? '#065f46' : '#7f1d1d',
-                  border: isWin ? '1px solid #34d399' : '1px solid #ef4444',
-                  color: 'white',
-                  borderRadius: '5px',
-                  padding: '2px 6px',
-                  fontSize: '11px',
-                  fontWeight: 'bold',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '3px',
-                  boxShadow: isWin ? '0 1px 4px rgba(52, 211, 153, 0.4)' : '0 1px 4px rgba(239, 68, 68, 0.4)'
-                }}
-              >
-                <span style={{ color: '#cbd5e1', fontSize: '10px' }}>{drawNum}:</span>
-                <span style={{ fontSize: '12px' }}>{isWin ? '✅' : '❌'}</span>
-              </div>
-            );
-          })}
+        {/* Thống kê 10 kỳ TIỀN NHỊ */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', paddingTop: '6px', borderTop: '1px dotted rgba(51, 65, 85, 0.7)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+            <span style={{ fontSize: '11px', color: '#fbbf24', fontWeight: 'bold' }}>
+              🔥 KẾT QUẢ 10 KỲ TIỀN NHỊ (4 CHẠM - 64S):
+            </span>
+            <span style={{ fontSize: '11px', fontWeight: 'bold', color: winsTouch4Tien >= 7 ? '#34d399' : (winsTouch4Tien >= 5 ? '#fbbf24' : '#f87171'), backgroundColor: 'rgba(0,0,0,0.5)', padding: '2px 8px', borderRadius: '4px', border: '1px solid #475569' }}>
+              {winsTouch4Tien}/{total} Trúng ({rateTouch4Tien}%)
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {[...historyList10].reverse().map((h, idx) => {
+              const isWin = h.isTouch4TienHit;
+              const drawNum = h.drawId ? h.drawId.slice(-3) : (idx + 1);
+              return (
+                <div 
+                  key={idx}
+                  title={`Kỳ ${drawNum} (Tiền Nhị): ${isWin ? 'Trúng (Thắng)' : 'Trượt (Thua)'} | Về Tiền: ${h.resultTien || ''} | 4 Chạm: [${(h.pTouches?.top4Touches || []).join(',')}]`}
+                  style={{
+                    backgroundColor: isWin ? '#065f46' : '#7f1d1d',
+                    border: isWin ? '1px solid #34d399' : '1px solid #ef4444',
+                    color: 'white',
+                    borderRadius: '5px',
+                    padding: '2px 6px',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    boxShadow: isWin ? '0 1px 4px rgba(52, 211, 153, 0.4)' : '0 1px 4px rgba(239, 68, 68, 0.4)'
+                  }}
+                >
+                  <span style={{ color: '#cbd5e1', fontSize: '10px' }}>{drawNum}:</span>
+                  <span style={{ fontSize: '12px' }}>{isWin ? '✅' : '❌'}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
+
+        {/* Hộp AI Phân tích Tiền Nhị vs Hậu Nhị cho 4 Chạm */}
+        {renderAITienVsHauBox(aiTienHau4)}
       </div>
     );
   };
@@ -200,44 +363,91 @@ const ExecutiveDashboard = ({
     if (!historyList10 || historyList10.length === 0) return null;
 
     return (
-      <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed #334155', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
-          <span style={{ fontSize: '11px', color: '#38bdf8', fontWeight: 'bold' }}>
-            🛡️ KẾT QUẢ 10 KỲ (3 CHẠM CỨNG - DÀN 51S):
-          </span>
-          <span style={{ fontSize: '11px', fontWeight: 'bold', color: winsTouch3 >= 7 ? '#34d399' : (winsTouch3 >= 5 ? '#fbbf24' : '#f87171'), backgroundColor: 'rgba(0,0,0,0.5)', padding: '2px 8px', borderRadius: '4px', border: '1px solid #475569' }}>
-            {winsTouch3}/{total} Trúng ({rateTouch3}%)
-          </span>
+      <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed #334155', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {/* Thống kê 10 kỳ HẬU NHỊ (3 Chạm) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+            <span style={{ fontSize: '11px', color: '#38bdf8', fontWeight: 'bold' }}>
+              🛡️ KẾT QUẢ 10 KỲ HẬU NHỊ (3 CHẠM - 51S):
+            </span>
+            <span style={{ fontSize: '11px', fontWeight: 'bold', color: winsTouch3 >= 7 ? '#34d399' : (winsTouch3 >= 5 ? '#fbbf24' : '#f87171'), backgroundColor: 'rgba(0,0,0,0.5)', padding: '2px 8px', borderRadius: '4px', border: '1px solid #475569' }}>
+              {winsTouch3}/{total} Trúng ({rateTouch3}%)
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {[...historyList10].reverse().map((h, idx) => {
+              const isWin = h.isTouch3Hit;
+              const drawNum = h.drawId ? h.drawId.slice(-3) : (idx + 1);
+              return (
+                <div 
+                  key={idx}
+                  title={`Kỳ ${drawNum} (Hậu Nhị): ${isWin ? 'Trúng (Thắng)' : 'Trượt (Thua)'} | Về Hậu: ${h.resultHau || ''} | 3 Chạm: [${(h.pTouches?.top3Touches || []).join(',')}]`}
+                  style={{
+                    backgroundColor: isWin ? '#065f46' : '#7f1d1d',
+                    border: isWin ? '1px solid #34d399' : '1px solid #ef4444',
+                    color: 'white',
+                    borderRadius: '5px',
+                    padding: '2px 6px',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    boxShadow: isWin ? '0 1px 4px rgba(52, 211, 153, 0.4)' : '0 1px 4px rgba(239, 68, 68, 0.4)'
+                  }}
+                >
+                  <span style={{ color: '#cbd5e1', fontSize: '10px' }}>{drawNum}:</span>
+                  <span style={{ fontSize: '12px' }}>{isWin ? '✅' : '❌'}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
-          {[...historyList10].reverse().map((h, idx) => {
-            const isWin = h.isTouch3Hit;
-            const drawNum = h.drawId ? h.drawId.slice(-3) : (idx + 1);
-            return (
-              <div 
-                key={idx}
-                title={`Kỳ ${drawNum}: ${isWin ? 'Trúng (Thắng)' : 'Trượt (Thua)'} | Về Hậu: ${h.resultHau || ''} | 3 Chạm: [${(h.pTouches?.top3Touches || []).join(',')}]`}
-                style={{
-                  backgroundColor: isWin ? '#065f46' : '#7f1d1d',
-                  border: isWin ? '1px solid #34d399' : '1px solid #ef4444',
-                  color: 'white',
-                  borderRadius: '5px',
-                  padding: '2px 6px',
-                  fontSize: '11px',
-                  fontWeight: 'bold',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '3px',
-                  boxShadow: isWin ? '0 1px 4px rgba(52, 211, 153, 0.4)' : '0 1px 4px rgba(239, 68, 68, 0.4)'
-                }}
-              >
-                <span style={{ color: '#cbd5e1', fontSize: '10px' }}>{drawNum}:</span>
-                <span style={{ fontSize: '12px' }}>{isWin ? '✅' : '❌'}</span>
-              </div>
-            );
-          })}
+        {/* Thống kê 10 kỳ TIỀN NHỊ (3 Chạm) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', paddingTop: '6px', borderTop: '1px dotted rgba(51, 65, 85, 0.7)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+            <span style={{ fontSize: '11px', color: '#fbbf24', fontWeight: 'bold' }}>
+              🔥 KẾT QUẢ 10 KỲ TIỀN NHỊ (3 CHẠM - 51S):
+            </span>
+            <span style={{ fontSize: '11px', fontWeight: 'bold', color: winsTouch3Tien >= 7 ? '#34d399' : (winsTouch3Tien >= 5 ? '#fbbf24' : '#f87171'), backgroundColor: 'rgba(0,0,0,0.5)', padding: '2px 8px', borderRadius: '4px', border: '1px solid #475569' }}>
+              {winsTouch3Tien}/{total} Trúng ({rateTouch3Tien}%)
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {[...historyList10].reverse().map((h, idx) => {
+              const isWin = h.isTouch3TienHit;
+              const drawNum = h.drawId ? h.drawId.slice(-3) : (idx + 1);
+              return (
+                <div 
+                  key={idx}
+                  title={`Kỳ ${drawNum} (Tiền Nhị): ${isWin ? 'Trúng (Thắng)' : 'Trượt (Thua)'} | Về Tiền: ${h.resultTien || ''} | 3 Chạm: [${(h.pTouches?.top3Touches || []).join(',')}]`}
+                  style={{
+                    backgroundColor: isWin ? '#065f46' : '#7f1d1d',
+                    border: isWin ? '1px solid #34d399' : '1px solid #ef4444',
+                    color: 'white',
+                    borderRadius: '5px',
+                    padding: '2px 6px',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    boxShadow: isWin ? '0 1px 4px rgba(52, 211, 153, 0.4)' : '0 1px 4px rgba(239, 68, 68, 0.4)'
+                  }}
+                >
+                  <span style={{ color: '#cbd5e1', fontSize: '10px' }}>{drawNum}:</span>
+                  <span style={{ fontSize: '12px' }}>{isWin ? '✅' : '❌'}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
+
+        {/* Hộp AI Phân tích Tiền Nhị vs Hậu Nhị cho 3 Chạm */}
+        {renderAITienVsHauBox(aiTienHau3)}
       </div>
     );
   };
@@ -246,44 +456,91 @@ const ExecutiveDashboard = ({
     if (!historyList10 || historyList10.length === 0) return null;
 
     return (
-      <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed #334155', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
-          <span style={{ fontSize: '11px', color: '#c084fc', fontWeight: 'bold' }}>
-            🎯 KẾT QUẢ 10 KỲ (DÀN GHÉP TRONG 25 SỐ):
-          </span>
-          <span style={{ fontSize: '11px', fontWeight: 'bold', color: winsGhep25 >= 4 ? '#34d399' : (winsGhep25 >= 2 ? '#fbbf24' : '#f87171'), backgroundColor: 'rgba(0,0,0,0.5)', padding: '2px 8px', borderRadius: '4px', border: '1px solid #475569' }}>
-            {winsGhep25}/{total} Trúng ({rateGhep25}%)
-          </span>
+      <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed #334155', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {/* Thống kê 10 kỳ HẬU NHỊ (Ghép 25s) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+            <span style={{ fontSize: '11px', color: '#c084fc', fontWeight: 'bold' }}>
+              🎯 KẾT QUẢ 10 KỲ HẬU NHỊ (DÀN GHÉP 25S):
+            </span>
+            <span style={{ fontSize: '11px', fontWeight: 'bold', color: winsGhep25 >= 4 ? '#34d399' : (winsGhep25 >= 2 ? '#fbbf24' : '#f87171'), backgroundColor: 'rgba(0,0,0,0.5)', padding: '2px 8px', borderRadius: '4px', border: '1px solid #475569' }}>
+              {winsGhep25}/{total} Trúng ({rateGhep25}%)
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {[...historyList10].reverse().map((h, idx) => {
+              const isWin = h.isGhep25Hit;
+              const drawNum = h.drawId ? h.drawId.slice(-3) : (idx + 1);
+              return (
+                <div 
+                  key={idx}
+                  title={`Kỳ ${drawNum} (Hậu Nhị): ${isWin ? 'Trúng (Thắng)' : 'Trượt (Thua)'} | Về Hậu: ${h.resultHau || ''}`}
+                  style={{
+                    backgroundColor: isWin ? '#065f46' : '#7f1d1d',
+                    border: isWin ? '1px solid #34d399' : '1px solid #ef4444',
+                    color: 'white',
+                    borderRadius: '5px',
+                    padding: '2px 6px',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    boxShadow: isWin ? '0 1px 4px rgba(52, 211, 153, 0.4)' : '0 1px 4px rgba(239, 68, 68, 0.4)'
+                  }}
+                >
+                  <span style={{ color: '#cbd5e1', fontSize: '10px' }}>{drawNum}:</span>
+                  <span style={{ fontSize: '12px' }}>{isWin ? '✅' : '❌'}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
-          {[...historyList10].reverse().map((h, idx) => {
-            const isWin = h.isGhep25Hit;
-            const drawNum = h.drawId ? h.drawId.slice(-3) : (idx + 1);
-            return (
-              <div 
-                key={idx}
-                title={`Kỳ ${drawNum}: ${isWin ? 'Trúng (Thắng)' : 'Trượt (Thua)'} | Về Hậu: ${h.resultHau || ''}`}
-                style={{
-                  backgroundColor: isWin ? '#065f46' : '#7f1d1d',
-                  border: isWin ? '1px solid #34d399' : '1px solid #ef4444',
-                  color: 'white',
-                  borderRadius: '5px',
-                  padding: '2px 6px',
-                  fontSize: '11px',
-                  fontWeight: 'bold',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '3px',
-                  boxShadow: isWin ? '0 1px 4px rgba(52, 211, 153, 0.4)' : '0 1px 4px rgba(239, 68, 68, 0.4)'
-                }}
-              >
-                <span style={{ color: '#cbd5e1', fontSize: '10px' }}>{drawNum}:</span>
-                <span style={{ fontSize: '12px' }}>{isWin ? '✅' : '❌'}</span>
-              </div>
-            );
-          })}
+        {/* Thống kê 10 kỳ TIỀN NHỊ (Ghép 25s) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', paddingTop: '6px', borderTop: '1px dotted rgba(51, 65, 85, 0.7)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+            <span style={{ fontSize: '11px', color: '#fbbf24', fontWeight: 'bold' }}>
+              🔥 KẾT QUẢ 10 KỲ TIỀN NHỊ (DÀN GHÉP 25S):
+            </span>
+            <span style={{ fontSize: '11px', fontWeight: 'bold', color: winsGhep25Tien >= 4 ? '#34d399' : (winsGhep25Tien >= 2 ? '#fbbf24' : '#f87171'), backgroundColor: 'rgba(0,0,0,0.5)', padding: '2px 8px', borderRadius: '4px', border: '1px solid #475569' }}>
+              {winsGhep25Tien}/{total} Trúng ({rateGhep25Tien}%)
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {[...historyList10].reverse().map((h, idx) => {
+              const isWin = h.isGhep25TienHit;
+              const drawNum = h.drawId ? h.drawId.slice(-3) : (idx + 1);
+              return (
+                <div 
+                  key={idx}
+                  title={`Kỳ ${drawNum} (Tiền Nhị): ${isWin ? 'Trúng (Thắng)' : 'Trượt (Thua)'} | Về Tiền: ${h.resultTien || ''}`}
+                  style={{
+                    backgroundColor: isWin ? '#065f46' : '#7f1d1d',
+                    border: isWin ? '1px solid #34d399' : '1px solid #ef4444',
+                    color: 'white',
+                    borderRadius: '5px',
+                    padding: '2px 6px',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    boxShadow: isWin ? '0 1px 4px rgba(52, 211, 153, 0.4)' : '0 1px 4px rgba(239, 68, 68, 0.4)'
+                  }}
+                >
+                  <span style={{ color: '#cbd5e1', fontSize: '10px' }}>{drawNum}:</span>
+                  <span style={{ fontSize: '12px' }}>{isWin ? '✅' : '❌'}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
+
+        {/* Hộp AI Phân tích Tiền Nhị vs Hậu Nhị cho Dàn 25s */}
+        {renderAITienVsHauBox(aiTienHauGhep25)}
       </div>
     );
   };
@@ -528,11 +785,11 @@ const ExecutiveDashboard = ({
               <Sparkles size={16} /> PHƯƠNG ÁN TỐI ƯU
             </span>
             <span style={{ color: '#34d399', fontWeight: 'bold', fontSize: '1.15rem' }}>
-              ⚡ HỆ THỐNG BẮT 3 CHẠM & 4 CHẠM CỨNG HẬU NHỊ (AI PRO)
+              ⚡ HỆ THỐNG BẮT 3 CHẠM & 4 CHẠM CỨNG (TIỀN NHỊ & HẬU NHỊ - AI PRO)
             </span>
           </div>
           <span style={{ backgroundColor: '#064e3b', color: '#a7f3d0', fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '6px', border: '1px solid #059669' }}>
-            Đảo Chiều 10 Cầu Loại & Bắt Chạm Rơi Hậu Nhị
+            Đối Chiếu Tự Động Tiền Nhị & Hậu Nhị • AI Chọn Miền Đánh Tốt Nhất
           </span>
         </div>
 
@@ -819,7 +1076,47 @@ const ExecutiveDashboard = ({
               boxShadow: khungStrategy === 'touch4' ? '0 0 10px rgba(99, 102, 241, 0.4)' : 'none'
             }}
           >
-            <Target size={14} color="#34d399" /> 🎯 TOP 4 Chạm Cứng (Dàn 64s)
+            <Target size={14} color="#34d399" /> 🎯 4 Chạm Hậu Nhị (64s)
+          </button>
+
+          <button 
+            onClick={() => setKhungStrategy('touch4_tien')}
+            style={{
+              backgroundColor: khungStrategy === 'touch4_tien' ? '#d97706' : '#1e293b',
+              color: khungStrategy === 'touch4_tien' ? '#ffffff' : '#fde68a',
+              border: khungStrategy === 'touch4_tien' ? '1.5px solid #fbbf24' : '1px solid #334155',
+              padding: '5px 12px',
+              borderRadius: '6px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              boxShadow: khungStrategy === 'touch4_tien' ? '0 0 10px rgba(245, 158, 11, 0.4)' : 'none'
+            }}
+          >
+            <Flame size={14} color="#fbbf24" /> 🔥 4 Chạm Tiền Nhị (64s)
+          </button>
+
+          <button 
+            onClick={() => setKhungStrategy('touch3_tien')}
+            style={{
+              backgroundColor: khungStrategy === 'touch3_tien' ? '#d97706' : '#1e293b',
+              color: khungStrategy === 'touch3_tien' ? '#ffffff' : '#fde68a',
+              border: khungStrategy === 'touch3_tien' ? '1.5px solid #fbbf24' : '1px solid #334155',
+              padding: '5px 12px',
+              borderRadius: '6px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              boxShadow: khungStrategy === 'touch3_tien' ? '0 0 10px rgba(245, 158, 11, 0.4)' : 'none'
+            }}
+          >
+            <Flame size={14} color="#fbbf24" /> 🔥 3 Chạm Tiền Nhị (51s)
           </button>
 
           <button 
@@ -2103,9 +2400,13 @@ function App() {
     let isLoai3Hit = false;
     let isLoai4Hit = false;
     let isTouch4Hit = false;
+    let isTouch4TienHit = false;
     let isTouch3Hit = false;
+    let isTouch3TienHit = false;
     let isTouch2Hit = false;
+    let isTouch2TienHit = false;
     let isGhep25Hit = false;
+    let isGhep25TienHit = false;
     let isD2Hit = false;
     let isD4Hit = false;
     let isD10Hit = false;
@@ -2116,6 +2417,17 @@ function App() {
 
     if (actualNextDraw) {
       const actHau = actualNextDraw.Result ? actualNextDraw.Result.slice(3, 5) : '';
+      const actTien = actualNextDraw.Result ? actualNextDraw.Result.slice(0, 2) : '';
+
+      if (actTien.length === 2 && pTouches) {
+        const actTienD1 = actTien[0];
+        const actTienD2 = actTien[1];
+        isTouch4TienHit = (pTouches.top4Touches || []).includes(actTienD1) || (pTouches.top4Touches || []).includes(actTienD2);
+        isTouch3TienHit = (pTouches.top3Touches || []).includes(actTienD1) || (pTouches.top3Touches || []).includes(actTienD2);
+        isTouch2TienHit = (pTouches.top2Touches || []).includes(actTienD1) || (pTouches.top2Touches || []).includes(actTienD2);
+        isGhep25TienHit = (pTouches.dan25Ghep || []).includes(actTien);
+      }
+
       if (actHau.length === 2) {
         const actChuc = actHau[0];
         const actDv = actHau[1];
@@ -2163,9 +2475,13 @@ function App() {
       isLoai3Hit,
       isLoai4Hit,
       isTouch4Hit,
+      isTouch4TienHit,
       isTouch3Hit,
+      isTouch3TienHit,
       isTouch2Hit,
+      isTouch2TienHit,
       isGhep25Hit,
+      isGhep25TienHit,
       isD2Hit,
       isD4Hit,
       isD10Hit,

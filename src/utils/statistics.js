@@ -1338,6 +1338,185 @@ export const calculateSmartTouches = (rawData) => {
 };
 
 // ============================================================================
+// 🤖 THUẬT TOÁN AI PHÂN TÍCH & SO SÁNH: ĐÁNH TIỀN NHỊ HAY HẬU NHỊ TỐT HƠN?
+// ============================================================================
+export const analyzeTienVsHau = (historyList10 = [], smartTouches = null, mode = 'touch4') => {
+  if (!historyList10 || historyList10.length === 0) {
+    return {
+      recommendation: 'HAU_NHI',
+      badgeText: '⚡ ƯU TIÊN ĐÁNH HẬU NHỊ',
+      subBadge: 'Đang thu thập thêm dữ liệu kỳ quay',
+      tienRate10: 0,
+      hauRate10: 0,
+      tienWins10: 0,
+      hauWins10: 0,
+      tienWins5: 0,
+      hauWins5: 0,
+      total10: 0,
+      total5: 0,
+      tienStatusText: 'Chưa đủ dữ liệu',
+      hauStatusText: 'Chưa đủ dữ liệu',
+      reasonText: 'Cần tối thiểu 2 kỳ kết quả để AI đối chiếu tỷ lệ Tiền Nhị và Hậu Nhị.',
+      confidence: 75,
+      colorTheme: 'emerald'
+    };
+  }
+
+  const hauKey = mode === 'touch4' ? 'isTouch4Hit' : (mode === 'touch3' ? 'isTouch3Hit' : 'isGhep25Hit');
+  const tienKey = mode === 'touch4' ? 'isTouch4TienHit' : (mode === 'touch3' ? 'isTouch3TienHit' : 'isGhep25TienHit');
+  const labelName = mode === 'touch4' ? '4 Chạm' : (mode === 'touch3' ? '3 Chạm' : 'Dàn 25s');
+  const expectedBaseRate = mode === 'touch4' ? 60 : (mode === 'touch3' ? 50 : 25);
+
+  const total10 = historyList10.length;
+  const recent5List = historyList10.slice(0, Math.min(5, total10));
+  const total5 = recent5List.length;
+
+  const hauWins10 = historyList10.filter(h => h && h[hauKey]).length;
+  const tienWins10 = historyList10.filter(h => h && h[tienKey]).length;
+  const hauRate10 = total10 > 0 ? Math.round((hauWins10 / total10) * 100) : 0;
+  const tienRate10 = total10 > 0 ? Math.round((tienWins10 / total10) * 100) : 0;
+
+  const hauWins5 = recent5List.filter(h => h && h[hauKey]).length;
+  const tienWins5 = recent5List.filter(h => h && h[tienKey]).length;
+  const hauRate5 = total5 > 0 ? Math.round((hauWins5 / total5) * 100) : 0;
+  const tienRate5 = total5 > 0 ? Math.round((tienWins5 / total5) * 100) : 0;
+
+  // Tính chuỗi thông / chuỗi gãy hiện tại (từ kỳ mới nhất historyList10[0])
+  const getStreak = (key) => {
+    let winStreak = 0;
+    let loseStreak = 0;
+    for (let i = 0; i < historyList10.length; i++) {
+      const isHit = Boolean(historyList10[i]?.[key]);
+      if (i === 0) {
+        if (isHit) winStreak = 1;
+        else loseStreak = 1;
+      } else {
+        if (winStreak > 0 && isHit) winStreak++;
+        else if (loseStreak > 0 && !isHit) loseStreak++;
+        else break;
+      }
+    }
+    return { winStreak, loseStreak };
+  };
+
+  const hauStreak = getStreak(hauKey);
+  const tienStreak = getStreak(tienKey);
+
+  // Đánh giá trạng thái nhịp và điểm thưởng/phạt cho từng miền (Tiền vs Hậu)
+  const evaluateZone = (rate10, rate5, wins5, streak) => {
+    let score = rate10 * 0.45 + rate5 * 0.40;
+    let statusText = '';
+
+    if (streak.winStreak >= 3) {
+      score += 22;
+      statusText = `🔥 Đang thông ${streak.winStreak} kỳ liên tiếp`;
+    } else if (streak.winStreak === 2) {
+      score += 18;
+      statusText = `⚡ Đang thông 2 kỳ (Nhịp đều)`;
+    } else if (streak.winStreak === 1) {
+      score += 12;
+      statusText = `✅ Vừa nổ kỳ trước (Đà thuận)`;
+    } else if (streak.loseStreak === 1) {
+      if (rate10 >= expectedBaseRate && wins5 >= Math.ceil(total5 * 0.5)) {
+        score += 20;
+        statusText = `💎 Vừa nghỉ 1 kỳ (Điểm vàng hồi nhịp)`;
+      } else {
+        score -= 8;
+        statusText = `⚠️ Vừa trượt 1 kỳ (Phong độ thấp)`;
+      }
+    } else if (streak.loseStreak === 2) {
+      if (rate10 >= expectedBaseRate + 10) {
+        score += 5;
+        statusText = `🔄 Nghỉ 2 kỳ (Canh hồi nhịp Tay 3)`;
+      } else {
+        score -= 25;
+        statusText = `❌ Đang gãy 2 kỳ liên tiếp (Cầu yếu)`;
+      }
+    } else if (streak.loseStreak >= 3) {
+      score -= 40;
+      statusText = `🚨 Đang gãy ${streak.loseStreak} kỳ thông (Nên né)`;
+    }
+
+    return { score, statusText };
+  };
+
+  const tienEval = evaluateZone(tienRate10, tienRate5, tienWins5, tienStreak);
+  const hauEval = evaluateZone(hauRate10, hauRate5, hauWins5, hauStreak);
+
+  const diff = tienEval.score - hauEval.score;
+  let recommendation = 'HAU_NHI';
+  let badgeText = '';
+  let subBadge = '';
+  let reasonText = '';
+  let colorTheme = 'emerald';
+  let confidence = 80;
+
+  if (diff >= 6) {
+    recommendation = 'TIEN_NHI';
+    colorTheme = 'amber';
+    confidence = Math.min(95, Math.max(75, Math.round(72 + diff * 0.5)));
+    badgeText = `🔥 AI KHUYÊN ĐÁNH: TIỀN NHỊ (2 SỐ ĐẦU) TỐT HƠN`;
+    subBadge = `Ưu thế Tiền Nhị vượt trội (+${Math.round(diff)} điểm AI)`;
+    reasonText = `Trong ${total10} kỳ qua, ${labelName} ăn TIỀN NHỊ ${tienWins10}/${total10} kỳ (${tienRate10}%), 5 kỳ gần nhất trúng ${tienWins5}/${total5} (${tienEval.statusText}). Vượt trội hơn HẬU NHỊ (${hauWins10}/${total10} kỳ - ${hauRate10}%, ${hauEval.statusText}).`;
+  } else if (diff <= -6) {
+    recommendation = 'HAU_NHI';
+    colorTheme = 'emerald';
+    confidence = Math.min(95, Math.max(75, Math.round(72 + Math.abs(diff) * 0.5)));
+    badgeText = `⚡ AI KHUYÊN ĐÁNH: HẬU NHỊ (2 SỐ CUỐI) TỐT HƠN`;
+    subBadge = `Ưu thế Hậu Nhị vượt trội (+${Math.round(Math.abs(diff))} điểm AI)`;
+    reasonText = `Trong ${total10} kỳ qua, ${labelName} ăn HẬU NHỊ ${hauWins10}/${total10} kỳ (${hauRate10}%), 5 kỳ gần nhất trúng ${hauWins5}/${total5} (${hauEval.statusText}). Tốt hơn hẳn TIỀN NHỊ (${tienWins10}/${total10} kỳ - ${tienRate10}%, ${tienEval.statusText}).`;
+  } else {
+    // Chênh lệch nhỏ (-6 < diff < 6)
+    if (tienRate10 >= expectedBaseRate && hauRate10 >= expectedBaseRate) {
+      recommendation = 'CA_HAI';
+      colorTheme = 'cyan';
+      confidence = Math.min(92, Math.round((tienRate10 + hauRate10) / 2 + 5));
+      const slightWinner = tienEval.score >= hauEval.score ? 'Tiền Nhị' : 'Hậu Nhị';
+      badgeText = `💎 CẢ TIỀN NHỊ & HẬU NHỊ ĐỀU ĐẸP (ƯU TIÊN ${slightWinner.toUpperCase()})`;
+      subBadge = `Cầu nổ song hành cả 2 đầu (${tienRate10}% vs ${hauRate10}%)`;
+      reasonText = `Cả 2 miền đều đang ăn rất đều: Tiền Nhị trúng ${tienWins10}/${total10} (${tienRate10}% - ${tienEval.statusText}) và Hậu Nhị trúng ${hauWins10}/${total10} (${hauRate10}% - ${hauEval.statusText}). Có thể đánh song thủ hoặc nghiêng nhẹ về ${slightWinner}.`;
+    } else if (tienEval.score >= hauEval.score) {
+      recommendation = 'TIEN_NHI';
+      colorTheme = 'amber';
+      confidence = Math.max(68, tienRate10 + 10);
+      badgeText = `🔥 AI KHUYÊN ĐÁNH: NGHIÊNG VỀ TIỀN NHỊ (2 SỐ ĐẦU)`;
+      subBadge = `Nhịp Tiền Nhị ổn định hơn Hậu Nhị`;
+      reasonText = `Tiền Nhị đạt ${tienWins10}/${total10} kỳ (${tienRate10}%, 5 kỳ gần ăn ${tienWins5}/${total5} - ${tienEval.statusText}), có nhịp cầu an toàn hơn Hậu Nhị (${hauWins10}/${total10} kỳ - ${hauRate10}%, ${hauEval.statusText}).`;
+    } else {
+      recommendation = 'HAU_NHI';
+      colorTheme = 'emerald';
+      confidence = Math.max(68, hauRate10 + 10);
+      badgeText = `⚡ AI KHUYÊN ĐÁNH: NGHIÊNG VỀ HẬU NHỊ (2 SỐ CUỐI)`;
+      subBadge = `Nhịp Hậu Nhị ổn định hơn Tiền Nhị`;
+      reasonText = `Hậu Nhị đạt ${hauWins10}/${total10} kỳ (${hauRate10}%, 5 kỳ gần ăn ${hauWins5}/${total5} - ${hauEval.statusText}), có nhịp cầu an toàn hơn Tiền Nhị (${tienWins10}/${total10} kỳ - ${tienRate10}%, ${tienEval.statusText}).`;
+    }
+  }
+
+  return {
+    recommendation,
+    badgeText,
+    subBadge,
+    tienRate10,
+    hauRate10,
+    tienWins10,
+    hauWins10,
+    tienWins5,
+    hauWins5,
+    tienRate5,
+    hauRate5,
+    total10,
+    total5,
+    tienStatusText: tienEval.statusText,
+    hauStatusText: hauEval.statusText,
+    tienScore: Math.round(tienEval.score),
+    hauScore: Math.round(hauEval.score),
+    reasonText,
+    confidence,
+    colorTheme
+  };
+};
+
+// ============================================================================
 // 🏆 HỆ THỐNG QUẢN LÝ & MÔ PHỎNG NUÔI KHUNG 3 KỲ QUAY (TỰ ĐỘNG RESET VỀ TAY 1 KHI TRÚNG)
 // ============================================================================
 export const calculateKhung3Ky = (rawData, strategyType = 'touch3') => {
@@ -1354,26 +1533,32 @@ export const calculateKhung3Ky = (rawData, strategyType = 'touch3') => {
   const historyKhungs = [];
   let i = 2; // Khởi đầu sau khi đã có tối thiểu 2-3 kỳ làm dữ liệu phân tích
 
+  const isTienMode = strategyType === 'touch4_tien' || strategyType === 'touch3_tien';
+
   const getPredForSlice = (slice) => {
-    if (strategyType === 'touch3') {
+    if (strategyType === 'touch3' || strategyType === 'touch3_tien') {
       const touches = calculateSmartTouches(slice);
+      const modeLabel = strategyType === 'touch3_tien' ? 'Tiền Nhị' : 'Hậu Nhị';
       return {
         predNumbers: touches.dan51So || [],
-        title: 'TOP 3 Chạm Cứng',
-        shortBadge: `3 Chạm [${(touches.top3Touches || []).join(',')}]`,
+        title: `TOP 3 Chạm Cứng (${modeLabel})`,
+        shortBadge: `3 Chạm ${modeLabel} [${(touches.top3Touches || []).join(',')}]`,
         danSize: (touches.dan51So || []).length,
-        extraInfo: `3 Chạm: ${(touches.top3Touches || []).join(', ')}`,
-        touches: touches.top3Touches || []
+        extraInfo: `3 Chạm (${modeLabel}): ${(touches.top3Touches || []).join(', ')}`,
+        touches: touches.top3Touches || [],
+        isTien: strategyType === 'touch3_tien'
       };
-    } else if (strategyType === 'touch4') {
+    } else if (strategyType === 'touch4' || strategyType === 'touch4_tien') {
       const touches = calculateSmartTouches(slice);
+      const modeLabel = strategyType === 'touch4_tien' ? 'Tiền Nhị' : 'Hậu Nhị';
       return {
         predNumbers: touches.dan64So || [],
-        title: 'TOP 4 Chạm Cứng',
-        shortBadge: `4 Chạm [${(touches.top4Touches || []).join(',')}]`,
+        title: `TOP 4 Chạm Cứng (${modeLabel})`,
+        shortBadge: `4 Chạm ${modeLabel} [${(touches.top4Touches || []).join(',')}]`,
         danSize: (touches.dan64So || []).length,
-        extraInfo: `4 Chạm: ${(touches.top4Touches || []).join(', ')}`,
-        touches: touches.top4Touches || []
+        extraInfo: `4 Chạm (${modeLabel}): ${(touches.top4Touches || []).join(', ')}`,
+        touches: touches.top4Touches || [],
+        isTien: strategyType === 'touch4_tien'
       };
     } else if (strategyType === 'loai4_dan36') {
       const loai = getLoaiSoHauNhi(slice);
@@ -1420,12 +1605,12 @@ export const calculateKhung3Ky = (rawData, strategyType = 'touch3') => {
 
   const isWinCheck = (predObj, resDraw) => {
     if (!resDraw || !resDraw.Result || resDraw.Result.length < 5) return false;
-    const resHau = resDraw.Result.slice(3, 5);
+    const resTarget = isTienMode ? resDraw.Result.slice(0, 2) : resDraw.Result.slice(3, 5);
     if (strategyType === 'txcl') {
       const actual = checkTXCL(resDraw.Result);
       return actual.tx === predObj.txcl?.tx;
     }
-    return (predObj.predNumbers || []).includes(resHau);
+    return (predObj.predNumbers || []).includes(resTarget);
   };
 
   let currentKhung = null;
@@ -1450,7 +1635,7 @@ export const calculateKhung3Ky = (rawData, strategyType = 'touch3') => {
     }
 
     const d1 = ascData[i + 1];
-    const resHau1 = d1.Result.slice(3, 5);
+    const resHau1 = isTienMode ? d1.Result.slice(0, 2) : d1.Result.slice(3, 5);
     const win1 = isWinCheck(predObj, d1);
 
     if (win1) {
@@ -1485,7 +1670,7 @@ export const calculateKhung3Ky = (rawData, strategyType = 'touch3') => {
     }
 
     const d2 = ascData[i + 2];
-    const resHau2 = d2.Result.slice(3, 5);
+    const resHau2 = isTienMode ? d2.Result.slice(0, 2) : d2.Result.slice(3, 5);
     const win2 = isWinCheck(predObj, d2);
 
     if (win2) {
@@ -1522,7 +1707,7 @@ export const calculateKhung3Ky = (rawData, strategyType = 'touch3') => {
     }
 
     const d3 = ascData[i + 3];
-    const resHau3 = d3.Result.slice(3, 5);
+    const resHau3 = isTienMode ? d3.Result.slice(0, 2) : d3.Result.slice(3, 5);
     const win3 = isWinCheck(predObj, d3);
 
     if (win3) {
