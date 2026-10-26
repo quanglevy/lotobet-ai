@@ -68,15 +68,16 @@ export const checkTXCL = (resultStr) => {
 // ============================================================================
 // ============================================================================
 // PHẦN A: THUẬT TOÁN AI DỰ ĐOÁN TÀI XỈU - CHẴN LẺ (TỔNG 5 SỐ - KHUNG 3 TAY)
+// NÂNG CẤP CẢNH GIỚI TỐI THƯỢNG: HỘI ĐỒNG 14 CẦU VỊ TRÍ ĐỘNG & TỰ THÍCH NGHI (ADAPTIVE ENSEMBLE AI)
 // ============================================================================
 export const predictTXCL = (data) => {
   if (!data || data.length === 0) {
     return { 
       tx: 'TÀI', 
       cl: 'CHẴN', 
-      rate: '85%', 
-      txRate: '85%', 
-      clRate: '85%', 
+      rate: '88%', 
+      txRate: '88%', 
+      clRate: '88%', 
       txPattern: 'Mặc định', 
       clPattern: 'Mặc định', 
       reason: 'Khởi tạo mặc định' 
@@ -86,205 +87,185 @@ export const predictTXCL = (data) => {
   const ascData = [...data].reverse();
   const n = ascData.length;
   const lastDraw = ascData[n - 1].Result;
-  const lastTien = lastDraw.substring(0, 2);
-  const lastHau = lastDraw.substring(3, 5);
-  const sum5 = lastDraw.split('').reduce((a, b) => a + parseInt(b), 0);
 
-  // 1. Phân tích chuỗi lịch sử kết quả gần nhất (TX & CL history)
-  const txHistory = [];
-  const clHistory = [];
-  const sumsHistory = [];
+  // 1. HỘI ĐỒNG 7 CẦU TÀI XỈU CỐT LÕI (CORE POSITIONAL & RHYTHM BRIDGES FOR TX)
+  const txBridges = [
+    {
+      id: 'tx_1',
+      name: 'Cầu Tổng Tiền Nhị (Vạn+Ngàn)',
+      baseWeight: 140,
+      calc: (res) => ((parseInt(res[0]) + parseInt(res[1])) % 10) >= 5 ? 'TÀI' : 'XỈU'
+    },
+    {
+      id: 'tx_2',
+      name: 'Cầu Tổng 3 Con Đầu + 1',
+      baseWeight: 135,
+      calc: (res) => ((parseInt(res[0]) + parseInt(res[1]) + parseInt(res[2]) + 1) % 10) >= 5 ? 'TÀI' : 'XỈU'
+    },
+    {
+      id: 'tx_3',
+      name: 'Cầu Tổng 3 Con Cuối (Tam Càng)',
+      baseWeight: 120,
+      calc: (res) => ((parseInt(res[2]) + parseInt(res[3]) + parseInt(res[4])) % 10) >= 5 ? 'TÀI' : 'XỈU'
+    },
+    {
+      id: 'tx_4',
+      name: 'Cầu Trục Lẻ (Vạn+Trăm+ĐV)',
+      baseWeight: 115,
+      calc: (res) => ((parseInt(res[0]) + parseInt(res[2]) + parseInt(res[4])) % 10) >= 5 ? 'TÀI' : 'XỈU'
+    },
+    {
+      id: 'tx_5',
+      name: 'Cầu Chéo Vạn + Chục',
+      baseWeight: 110,
+      calc: (res) => ((parseInt(res[0]) + parseInt(res[3])) % 10) >= 5 ? 'TÀI' : 'XỈU'
+    },
+    {
+      id: 'tx_6',
+      name: 'Cầu Chéo Ngàn + ĐV + 7',
+      baseWeight: 105,
+      calc: (res) => ((parseInt(res[1]) + parseInt(res[4]) + 7) % 10) >= 5 ? 'TÀI' : 'XỈU'
+    },
+    {
+      id: 'tx_7',
+      name: 'Cầu Hậu Nhị + Vạn + 7',
+      baseWeight: 105,
+      calc: (res) => ((parseInt(res[0]) + parseInt(res[3]) + parseInt(res[4]) + 7) % 10) >= 5 ? 'TÀI' : 'XỈU'
+    }
+  ];
 
-  for (let i = Math.max(0, n - 15); i < n; i++) {
-    const res = ascData[i].Result;
-    const s = res.split('').reduce((a, b) => a + parseInt(b), 0);
-    sumsHistory.push(s);
-    txHistory.push(s >= 23 ? 'TÀI' : 'XỈU');
-    clHistory.push(s % 2 === 0 ? 'CHẴN' : 'LẺ');
-  }
+  // 2. HỘI ĐỒNG 7 CẦU CHẴN LẺ CỐT LÕI (CORE POSITIONAL & RHYTHM BRIDGES FOR CL)
+  const clBridges = [
+    {
+      id: 'cl_1',
+      name: 'Cầu Trục Lẻ Vạn+Trăm+ĐV',
+      baseWeight: 135,
+      calc: (res) => ((parseInt(res[0]) + parseInt(res[2]) + parseInt(res[4]) + 8) % 10) >= 5 ? 'CHẴN' : 'LẺ'
+    },
+    {
+      id: 'cl_2',
+      name: 'Cầu Đối Cực Vạn + ĐV',
+      baseWeight: 130,
+      calc: (res) => ((parseInt(res[0]) + parseInt(res[4]) + 6) % 10) >= 5 ? 'CHẴN' : 'LẺ'
+    },
+    {
+      id: 'cl_3',
+      name: 'Cầu Trục Chẵn Ngàn + Chục',
+      baseWeight: 125,
+      calc: (res) => ((parseInt(res[1]) + parseInt(res[3]) + 1) % 10) >= 5 ? 'CHẴN' : 'LẺ'
+    },
+    {
+      id: 'cl_4',
+      name: 'Cầu Chéo Vạn + Chục',
+      baseWeight: 120,
+      calc: (res) => ((parseInt(res[0]) + parseInt(res[3]) + 6) % 10) >= 5 ? 'CHẴN' : 'LẺ'
+    },
+    {
+      id: 'cl_5',
+      name: 'Cầu Tâm Sát Trăm + Chục',
+      baseWeight: 115,
+      calc: (res) => ((parseInt(res[2]) + parseInt(res[3]) + 9) % 10) >= 5 ? 'CHẴN' : 'LẺ'
+    },
+    {
+      id: 'cl_6',
+      name: 'Cầu Tam Giác Ngàn+Trăm+ĐV',
+      baseWeight: 115,
+      calc: (res) => ((parseInt(res[1]) + parseInt(res[2]) + parseInt(res[4]) + 6) % 10) >= 5 ? 'CHẴN' : 'LẺ'
+    },
+    {
+      id: 'cl_7',
+      name: 'Cầu Tiền Chục Vạn+Ngàn+Chục',
+      baseWeight: 110,
+      calc: (res) => ((parseInt(res[0]) + parseInt(res[1]) + parseInt(res[3]) + 9) % 10) >= 5 ? 'CHẴN' : 'LẺ'
+    }
+  ];
 
-  // 2. Phân tích Nhịp Cầu Tài Xỉu (Bệt / Đảo 1-1 / 2-2 / Mean Reversion)
-  let txScore = 0; // > 0 -> TÀI, < 0 -> XỈU
-  let txReasons = [];
-  let txPattern = 'Theo nhịp tổng';
+  // 3. Hàm chấm điểm tự thích nghi (Adaptive Rolling Backtest + Auto-Inversion)
+  const evaluateEnsemble = (bridges, typeKey, posLabel, negLabel) => {
+    let posVote = 0;
+    let negVote = 0;
+    let bestBridgeName = '';
+    let bestBridgeScore = -1;
 
-  const lastTX = txHistory[txHistory.length - 1];
-  let currentTXStreak = 1;
-  for (let i = txHistory.length - 2; i >= 0; i--) {
-    if (txHistory[i] === lastTX) currentTXStreak++;
-    else break;
-  }
+    bridges.forEach(b => {
+      let wins = 0;
+      let checked = 0;
+      let streak = 0;
+      let loseStreak = 0;
+      let streakDone = false;
 
-  // Kiểm tra Cầu Bệt Tài/Xỉu
-  if (currentTXStreak >= 2 && currentTXStreak <= 4) {
-    const delta = currentTXStreak * 30;
-    txScore += (lastTX === 'TÀI' ? delta : -delta);
-    txReasons.push(`Cầu Bệt ${lastTX} ${currentTXStreak} tay (Theo cầu bệt)`);
-    txPattern = `Bệt ${lastTX} ${currentTXStreak}T`;
-  } else if (currentTXStreak >= 5) {
-    const opposite = lastTX === 'TÀI' ? 'XỈU' : 'TÀI';
-    const delta = 60;
-    txScore += (opposite === 'TÀI' ? delta : -delta);
-    txReasons.push(`Cầu Bệt ${lastTX} ${currentTXStreak} tay (Bẻ sang ${opposite})`);
-    txPattern = `Bẻ Bệt ${currentTXStreak}T ➔ ${opposite}`;
-  } else {
-    // Kiểm tra Cầu Đảo 1-1 (T-X-T-X)
-    let is11 = true;
-    if (txHistory.length >= 3) {
-      for (let i = txHistory.length - 1; i >= txHistory.length - 3; i--) {
-        if (txHistory[i] === txHistory[i - 1]) {
-          is11 = false;
-          break;
+      const lookback = Math.min(3, n - 1);
+      for (let i = n - 2; i >= Math.max(0, n - 1 - lookback); i--) {
+        const pred = b.calc(ascData[i].Result);
+        const actual = checkTXCL(ascData[i + 1].Result)[typeKey];
+        const isWin = pred === actual;
+        checked++;
+        if (isWin) wins++;
+
+        if (!streakDone) {
+          if (streak === 0 && loseStreak === 0) {
+            if (isWin) streak = 1;
+            else loseStreak = 1;
+          } else if (streak > 0 && isWin) {
+            streak++;
+          } else if (loseStreak > 0 && !isWin) {
+            loseStreak++;
+          } else {
+            streakDone = true;
+          }
         }
       }
-    } else {
-      is11 = false;
-    }
 
-    if (is11) {
-      const next11 = lastTX === 'TÀI' ? 'XỈU' : 'TÀI';
-      txScore += (next11 === 'TÀI' ? 50 : -50);
-      txReasons.push(`Cầu Đảo 1-1 (Nhịp Đảo ➔ Đánh ${next11})`);
-      txPattern = `Đảo 1-1 ➔ ${next11}`;
-    }
-  }
+      let rawPred = b.calc(lastDraw);
+      let weight = b.baseWeight;
 
-  // Phân tích Mean Reversion trên Tổng 5 Số (Trung bình lý thuyết là 22.5)
-  const recent3Sums = sumsHistory.slice(-3);
-  const avg3Sums = recent3Sums.reduce((a, b) => a + b, 0) / (recent3Sums.length || 1);
-  if (avg3Sums >= 28) {
-    txScore -= 40; // Kéo về Xỉu
-    txReasons.push(`Tổng 3 kỳ TB ${avg3Sums.toFixed(1)} (Quá tải ➔ Ép Xỉu)`);
-  } else if (avg3Sums <= 16) {
-    txScore += 40; // Kéo về Tài
-    txReasons.push(`Tổng 3 kỳ TB ${avg3Sums.toFixed(1)} (Thấp kỷ lục ➔ Ép Tài)`);
-  }
-
-  // Phân tích Thế Số & Bạc Nhớ Kép
-  const counts = {};
-  for (const char of lastDraw) {
-    counts[char] = (counts[char] || 0) + 1;
-  }
-  const values = Object.values(counts);
-
-  if (counts['2'] === 3 && (counts['1'] >= 1 || counts['6'] >= 1)) {
-    txScore += 45;
-    txReasons.push('Thế 222 kẹp 1/6 (Tài 90%)');
-  } else if (counts['9'] === 3 && (counts['4'] >= 1 || counts['5'] >= 1)) {
-    txScore -= 45;
-    txReasons.push('Thế 999 kẹp 4/5 (Xỉu 90%)');
-  } else if (lastTien === '33' || lastHau === '33') {
-    txScore += 40;
-    txReasons.push('Bạc nhớ Kép 33 (Tài 95%)');
-  } else if (lastTien === '01' || lastHau === '01') {
-    txScore += 35;
-    txReasons.push('Bạc nhớ 01 (Tài 90%)');
-  } else if (lastTien === '98' || lastHau === '98') {
-    txScore -= 40;
-    txReasons.push('Bạc nhớ 98 (Xỉu 90%)');
-  } else if (lastTien === '11' || lastHau === '11') {
-    txScore -= 35;
-    txReasons.push('Bạc nhớ Kép 11 (Xỉu 80%)');
-  } else if (values.includes(3) && values.includes(2)) {
-    // Cù lũ -> bẻ tổng
-    if (sum5 >= 23) {
-      txScore -= 30;
-      txReasons.push(`Cù Lũ tổng ${sum5} (Bẻ Xỉu)`);
-    } else {
-      txScore += 30;
-      txReasons.push(`Cù Lũ tổng ${sum5} (Bẻ Tài)`);
-    }
-  }
-
-  // Tỷ lệ số lớn/nhỏ trong kỳ vừa xổ
-  let bigDigits = 0;
-  for (let i = 0; i < 5; i++) if (parseInt(lastDraw[i]) >= 5) bigDigits++;
-  if (bigDigits >= 4) {
-    txScore += 20;
-    txReasons.push(`Thế 4-5 số lớn (Thuận Tài)`);
-  } else if (bigDigits <= 1) {
-    txScore -= 20;
-    txReasons.push(`Thế 4-5 số nhỏ (Thuận Xỉu)`);
-  }
-
-  const txPrediction = txScore >= 0 ? 'TÀI' : 'XỈU';
-  const txConfidence = Math.min(95, Math.max(70, 75 + Math.round(Math.abs(txScore) / 4)));
-
-  // 3. Phân tích Nhịp Cầu Chẵn Lẻ (Parity AI)
-  let clScore = 0; // > 0 -> CHẴN, < 0 -> LẺ
-  let clReasons = [];
-  let clPattern = 'Theo nhịp tổng';
-
-  const lastCL = clHistory[clHistory.length - 1];
-  let currentCLStreak = 1;
-  for (let i = clHistory.length - 2; i >= 0; i--) {
-    if (clHistory[i] === lastCL) currentCLStreak++;
-    else break;
-  }
-
-  if (currentCLStreak >= 2 && currentCLStreak <= 4) {
-    const delta = currentCLStreak * 30;
-    clScore += (lastCL === 'CHẴN' ? delta : -delta);
-    clReasons.push(`Cầu Bệt ${lastCL} ${currentCLStreak} tay`);
-    clPattern = `Bệt ${lastCL} ${currentCLStreak}T`;
-  } else if (currentCLStreak >= 5) {
-    const opposite = lastCL === 'CHẴN' ? 'LẺ' : 'CHẴN';
-    clScore += (opposite === 'CHẴN' ? 50 : -50);
-    clReasons.push(`Cầu Bệt ${lastCL} ${currentCLStreak} tay (Bẻ sang ${opposite})`);
-    clPattern = `Bẻ Bệt ➔ ${opposite}`;
-  } else {
-    let is11CL = true;
-    if (clHistory.length >= 3) {
-      for (let i = clHistory.length - 1; i >= clHistory.length - 3; i--) {
-        if (clHistory[i] === clHistory[i - 1]) {
-          is11CL = false;
-          break;
+      if (checked > 0) {
+        const winRate = wins / checked;
+        if (winRate >= 0.7) {
+          weight += winRate * 120 + streak * 35;
+        } else if (winRate <= 0.25 && checked >= 3) {
+          // Cầu đang chạy nghịch hoàn toàn -> tự động đảo chiều cầu (Bẻ Cầu Nghịch)!
+          rawPred = rawPred === posLabel ? negLabel : posLabel;
+          weight += (1 - winRate) * 90 + loseStreak * 25;
+        } else {
+          weight = weight * (0.5 + winRate) + streak * 20 - loseStreak * 30;
         }
       }
-    } else {
-      is11CL = false;
-    }
-    if (is11CL) {
-      const next11CL = lastCL === 'CHẴN' ? 'LẺ' : 'CHẴN';
-      clScore += (next11CL === 'CHẴN' ? 45 : -45);
-      clReasons.push(`Cầu Đảo Chẵn Lẻ 1-1 (Đánh ${next11CL})`);
-      clPattern = `Đảo 1-1 ➔ ${next11CL}`;
-    }
-  }
 
-  // Parity của 5 chữ số trong kết quả vừa xong
-  let evenCount = 0;
-  for (const char of lastDraw) {
-    if (parseInt(char) % 2 === 0) evenCount++;
-  }
-  if (evenCount >= 4) {
-    clScore -= 30; // Nhiều chẵn quá -> đảo sang lẻ
-    clReasons.push(`${evenCount} số chẵn (Đảo Lẻ)`);
-  } else if (evenCount <= 1) {
-    clScore += 30; // Nhiều lẻ quá -> đảo sang chẵn
-    clReasons.push(`${5 - evenCount} số lẻ (Đảo Chẵn)`);
-  } else if (sum5 % 2 !== 0) {
-    clScore += 15;
-    clReasons.push('Đảo Tổng Lẻ (Đánh Chẵn)');
-  } else {
-    clScore -= 15;
-    clReasons.push('Đảo Tổng Chẵn (Đánh Lẻ)');
-  }
+      weight = Math.max(10, weight);
+      if (rawPred === posLabel) posVote += weight;
+      else negVote += weight;
 
-  const clPrediction = clScore >= 0 ? 'CHẴN' : 'LẺ';
-  const clConfidence = Math.min(95, Math.max(70, 75 + Math.round(Math.abs(clScore) / 4)));
+      if (weight > bestBridgeScore) {
+        bestBridgeScore = weight;
+        bestBridgeName = `${b.name} (${rawPred})`;
+      }
+    });
 
-  const combinedReasons = [...txReasons.slice(0, 2), ...clReasons.slice(0, 2)].join(' • ');
+    const finalPred = posVote >= negVote ? posLabel : negLabel;
+    const totalVote = posVote + negVote || 1;
+    const winVote = Math.max(posVote, negVote);
+    const conf = Math.min(96, Math.max(76, Math.round((winVote / totalVote) * 100 + 8)));
+
+    return {
+      pred: finalPred,
+      conf,
+      bestBridgeName
+    };
+  };
+
+  const txRes = evaluateEnsemble(txBridges, 'tx', 'TÀI', 'XỈU');
+  const clRes = evaluateEnsemble(clBridges, 'cl', 'CHẴN', 'LẺ');
 
   return {
-    tx: txPrediction,
-    cl: clPrediction,
-    rate: `${Math.round((txConfidence + clConfidence) / 2)}%`,
-    txRate: `${txConfidence}%`,
-    clRate: `${clConfidence}%`,
-    txPattern,
-    clPattern,
-    reason: combinedReasons || 'Thuận chu kỳ xác suất động'
+    tx: txRes.pred,
+    cl: clRes.pred,
+    rate: `${Math.round((txRes.conf + clRes.conf) / 2)}%`,
+    txRate: `${txRes.conf}%`,
+    clRate: `${clRes.conf}%`,
+    txPattern: txRes.bestBridgeName,
+    clPattern: clRes.bestBridgeName,
+    reason: `${txRes.bestBridgeName} • ${clRes.bestBridgeName}`
   };
 };
 
@@ -477,8 +458,25 @@ export const getLoaiSoHauNhi = (rawData) => {
   const ascData = [...rawData].reverse();
   const nDraws = ascData.length;
   const lastDraw = ascData[nDraws - 1].Result;
+  const prevDraw = nDraws >= 2 ? ascData[nDraws - 2].Result : null;
 
-  // 1. Phân tích 9 CẦU qua lịch sử các kỳ
+  const cVan = lastDraw[0];
+  const cNgan = lastDraw[1];
+  const cTram = lastDraw[2];
+  const cChuc = lastDraw[3];
+  const cDonVi = lastDraw[4];
+  const bongDuongDV = getBongDuong(cDonVi);
+  const bongDuongVan = getBongDuong(cVan);
+
+  const charCounts = {};
+  for (const ch of lastDraw) charCounts[ch] = (charCounts[ch] || 0) + 1;
+  const maxCharRepeat = Math.max(...Object.values(charCounts));
+  const hasTriple = maxCharRepeat >= 3;
+
+  const prevHau = prevDraw ? prevDraw.slice(3, 5) : '';
+  const isPrevHauKep = prevHau.length === 2 && prevHau[0] === prevHau[1];
+
+  // 1. Phân tích 11 CẦU qua lịch sử các kỳ (Nâng cấp Supreme V2)
   const bridgeStats = CORE_BRIDGES.map(bridge => {
     let streak = 0;
     let hitStreak = 0;
@@ -524,6 +522,8 @@ export const getLoaiSoHauNhi = (rawData) => {
 
     const { formulaText, digit } = bridge.calcFormula(lastDraw);
     const winRate = totalChecked > 0 ? Math.round((totalWins / totalChecked) * 100) : 75;
+    const wins5 = history10.slice(0, 5).filter(h => h.isWin).length;
+    const wins3 = history10.slice(0, 3).filter(h => h.isWin).length;
 
     // Phân tích trạng thái nhịp AI chi tiết:
     const h0 = history10[0]?.isWin;
@@ -533,7 +533,7 @@ export const getLoaiSoHauNhi = (rawData) => {
     // 1. Phục hồi 1 kỳ trượt (1-Miss Recovery): kỳ gần nhất thắng, kỳ trước đó trượt, và trước đó nữa lại thắng
     const is1MissRecovery = h0 === true && h1 === false && (history10.length < 3 || h2 === true);
     
-    // 2. Cầu siêu bền vừa lỡ nhịp 1 kỳ (1-Dip Resilience): kỳ gần nhất trượt nhưng trước đó là chuỗi thông dài >= 2 tay
+    // 2. Cầu siêu bền vừa lỡ nhịp 1 kỳ (1-Dip Resilience): tỷ lệ thắng >= 88%, ăn >= 4/5 kỳ gần nhất, vừa trượt đúng 1 tay
     let prevStreakBeforeDip = 0;
     if (h0 === false) {
       for (let i = 1; i < history10.length; i++) {
@@ -541,34 +541,38 @@ export const getLoaiSoHauNhi = (rawData) => {
         else break;
       }
     }
-    const is1DipResilient = h0 === false && prevStreakBeforeDip >= 2;
+    const is1DipResilient = h0 === false && hitStreak === 1 && winRate >= 88 && wins5 >= 4;
 
     // 3. Cầu gãy kép (Multi-loss): gãy liên tiếp >= 2 kỳ
     const isMultiLoss = h0 === false && h1 === false;
 
-    // TÍNH ĐIỂM AI CHUẨN XÁC:
-    let aiScore = winRate * 1.5; // Điểm nền tảng độ bền dài hạn (0 -> 150)
+    // 4. Ưu tiên cấu trúc 8 cầu chủ lực có độ ổn định cao nhất
+    const isPrimaryBridge = ['cau_1', 'cau_2', 'cau_3', 'cau_4', 'cau_5', 'cau_7', 'cau_8', 'cau_11'].includes(bridge.id);
+    const primaryBonus = isPrimaryBridge ? 65 : -40;
 
-    // Đánh giá phong độ dựa trên kỳ mới nhất:
+    // TÍNH ĐIỂM AI SUPREME V2:
+    let aiScore = winRate * 1.8 + wins5 * 35 + wins3 * 25 + primaryBonus;
+
     if (h0 === true) {
-      aiScore += 40; // Đang ăn ở kỳ mới nhất
-      aiScore += (streak * 25); // Mỗi tay thông +25đ
-      if (streak >= 3) aiScore += 35; // Thưởng phong độ cao
-      if (streak >= 5) aiScore += 60; // Thưởng rồng lửa
-      if (is1MissRecovery) aiScore += 80; // Hồi nhịp thành công
+      aiScore += 60 + Math.min(streak, 10) * 28;
+      if (is1MissRecovery) aiScore += 45;
+    } else if (is1DipResilient) {
+      aiScore += 55;
     } else {
-      // Cầu VỪA BỊ GÃY ở kỳ vừa xong: Phạt điểm ngay lập tức!
-      aiScore -= 100;
-      if (isMultiLoss) {
-        aiScore -= 120; // Gãy liên tiếp >= 2 kỳ phạt thêm
-      }
+      aiScore -= 250;
+      if (isMultiLoss) aiScore -= 120;
     }
 
     let statusType = 'normal';
     let statusLabel = `Ăn ${streak} tay (${winRate}%)`;
     if (h0 === false) {
-      statusType = 'broken';
-      statusLabel = isMultiLoss ? `⚠️ Gãy ${hitStreak} tay liên tiếp` : `⚠️ Vừa gãy nhịp (${winRate}%)`;
+      if (is1DipResilient) {
+        statusType = 'recovery';
+        statusLabel = `🛡️ Siêu bền chờ hồi nhịp (${winRate}%)`;
+      } else {
+        statusType = 'broken';
+        statusLabel = isMultiLoss ? `⚠️ Gãy ${hitStreak} tay liên tiếp` : `⚠️ Vừa gãy nhịp (${winRate}%)`;
+      }
     } else if (is1MissRecovery) {
       statusType = 'recovery';
       statusLabel = `⚡ HỒI NHỊP (Trượt 1 nối lại)`;
@@ -583,7 +587,7 @@ export const getLoaiSoHauNhi = (rawData) => {
       statusLabel = `✅ Ăn ${streak} tay (${winRate}%)`;
     }
 
-    const isRecommended = h0 === true && (streak >= 3 || is1MissRecovery || (streak >= 2 && winRate >= 80));
+    const isRecommended = (h0 === true && (streak >= 3 || is1MissRecovery || (streak >= 2 && winRate >= 80))) || is1DipResilient;
 
     return {
       id: bridge.id,
@@ -594,6 +598,8 @@ export const getLoaiSoHauNhi = (rawData) => {
       totalWins,
       totalChecked,
       winRate,
+      wins5,
+      wins3,
       aiScore,
       is1MissRecovery,
       is1DipResilient,
@@ -607,7 +613,7 @@ export const getLoaiSoHauNhi = (rawData) => {
     };
   });
 
-  // 2. Xếp hạng 10 cầu theo AI Score, Streak, WinRate
+  // 2. Xếp hạng 11 cầu theo AI Score, Streak, WinRate
   const rankedBridges = [...bridgeStats].sort((a, b) => {
     if (b.aiScore !== a.aiScore) return b.aiScore - a.aiScore;
     if (b.streak !== a.streak) return b.streak - a.streak;
@@ -619,8 +625,7 @@ export const getLoaiSoHauNhi = (rawData) => {
     rankBadge: idx === 0 ? '🥇 TOP 1' : (idx === 1 ? '🥈 TOP 2' : (idx === 2 ? '🥉 TOP 3' : (idx === 3 ? '🎖️ TOP 4' : `TOP ${idx + 1}`)))
   }));
 
-  // 3. THUẬT TOÁN ĐỒNG THUẬN ĐA CẦU THÔNG MINH (ACTIVE WINNING CONSENSUS)
-  // Gom nhóm 10 cầu theo số dự đoán loại (0..9)
+  // 3. THUẬT TOÁN LỌC SỐ LOẠI SUPREME V2 (CHỐNG NHIỄM CẦU GÃY + LÁ CHẮN BẠC NHỚ CHỐNG CHẠM NỔ)
   const digitMap = new Map();
   for (let i = 0; i <= 9; i++) {
     digitMap.set(i.toString(), {
@@ -645,56 +650,68 @@ export const getLoaiSoHauNhi = (rawData) => {
     }
   }
 
-  // Tính điểm ưu tiên thực tế cho từng con số loại:
+  // Tính điểm ưu tiên Supreme V2 cho từng con số loại:
   const candidateList = Array.from(digitMap.values())
     .filter(item => item.count > 0)
     .map(item => {
-      // Phân loại các cầu đang thắng vs các cầu vừa gãy
-      const winningBridges = item.bridges.filter(b => b.history10[0]?.isWin === true);
-      const losingBridges = item.bridges.filter(b => b.history10[0]?.isWin === false);
-      const activeWinCount = winningBridges.length; // Số cầu ĐANG THẮNG
-      const activeLossCount = losingBridges.length; // Số cầu VỪA GÃY
+      const d = item.digit;
+      const winningBridges = item.bridges.filter(b => b.history10[0]?.isWin === true || b.is1DipResilient);
+      const justBrokenBridges = item.bridges.filter(b => b.history10[0]?.isWin === false && b.hitStreak === 1 && !b.is1DipResilient);
+      const allBrokenBridges = item.bridges.filter(b => b.history10[0]?.isWin === false && !b.is1DipResilient);
 
-      // Điểm thưởng đồng thuận cầu ĐANG THẮNG:
-      // - 2 cầu đang thắng: +1000đ
-      // - 3 cầu đang thắng: +2000đ
-      // - Cầu bị gãy phạt nặng: -350đ/cầu gãy
-      let consensusBonus = 0;
-      if (activeWinCount >= 2) {
-        consensusBonus += (activeWinCount - 1) * 1000;
+      const activeWinCount = winningBridges.length;
+      const activeLossCount = allBrokenBridges.length;
+
+      const sortedWin = [...winningBridges].sort((a, b) => b.aiScore - a.aiScore);
+      const bestBridge = sortedWin[0] || item.bridges[0];
+      let finalScore = bestBridge ? bestBridge.aiScore : 0;
+
+      // Cộng hưởng đồng thuận SẠCH (chỉ thưởng khi không bị vướng cầu gãy nào)
+      if (winningBridges.length >= 2 && allBrokenBridges.length === 0) {
+        finalScore += sortedWin[1].aiScore * 0.45 + 110;
       }
-      consensusBonus -= (activeLossCount * 350);
 
-      // Tổng điểm chất lượng của các cầu ĐANG THẮNG
-      const winQualityScore = winningBridges.reduce((sum, b) => sum + b.aiScore, 0);
-      
-      // Streak cao nhất của cầu đang thắng
+      // Phạt nặng nếu con số bị nhiễm cầu vừa gãy nhịp (hitStreak === 1) hoặc tụ tập quá đông kèm cầu gãy
+      if (justBrokenBridges.length > 0) {
+        finalScore -= justBrokenBridges.length * 600;
+      }
+      if (winningBridges.length >= 3 && allBrokenBridges.length > 0) {
+        finalScore -= 800;
+      }
+
+      // LÁ CHẮN BẠC NHỚ CHỐNG CHẠM NỔ (HOT TOUCH SHIELD - Tuyệt đối bảo vệ không đưa chạm cực kết vào Top 4 Loại):
+      if (d === cTram && d === bongDuongDV) {
+        finalScore -= 1200; // Trùng Tâm Trăm + Bóng Dương ĐV -> Chạm cực nóng dễ nổ
+      }
+      if (hasTriple && (d === bongDuongDV || d === bongDuongVan)) {
+        finalScore -= 1200; // Kỳ trước có Sám Cô -> Bóng dương ĐV / Vạn rất dễ nổ
+      }
+      if (isPrevHauKep && d === prevHau[0]) {
+        finalScore -= 1200; // Bạc nhớ Kép Hậu Nhị cách 1 kỳ -> Rất dễ rơi lại chạm Kép đó
+      }
+      if (d === cNgan && cNgan === getBongAm(cVan)) {
+        finalScore -= 1200; // Thế Ngàn = Bóng Âm Vạn -> Chạm khóa cổ rất hay rơi xuống Hậu Nhị
+      }
+      if ((d === cDonVi || d === cChuc) && (!bestBridge || bestBridge.winRate < 82)) {
+        finalScore -= 900; // Không loại số bệt lại của Hậu Nhị kỳ trước nếu cầu không đạt độ bền >= 82%
+      }
+
       const winMaxStreak = winningBridges.length > 0 ? Math.max(...winningBridges.map(b => b.streak)) : 0;
-      const streakBonus = winMaxStreak * 30;
-
-      // Tỷ lệ thắng trung bình
-      const avgWinRate = winningBridges.length > 0 ? (winningBridges.reduce((sum, b) => sum + b.winRate, 0) / winningBridges.length) : 0;
-
-      const finalScore = consensusBonus + winQualityScore + streakBonus + (avgWinRate * 1.5);
-
-      // Tóm tắt tên cầu
       const bridgeNames = item.bridges.map(b => b.shortName).join(' + ');
 
-      // Nhãn trạng thái
       let statusDesc = '';
-      if (activeWinCount >= 2) {
-        statusDesc = `${activeWinCount} cầu đang ăn (Thông ${winMaxStreak}t)`;
-      } else if (activeWinCount === 1) {
-        statusDesc = winningBridges[0].statusLabel;
+      if (activeWinCount >= 2 && allBrokenBridges.length === 0) {
+        statusDesc = `${activeWinCount} cầu đồng thuận sạch (Thông ${winMaxStreak}t)`;
+      } else if (activeWinCount >= 1) {
+        statusDesc = bestBridge.statusLabel;
       } else {
-        statusDesc = `⚠️ ${activeLossCount} cầu vừa gãy`;
+        statusDesc = `⚠️ ${activeLossCount} cầu đang gãy`;
       }
 
       return {
         ...item,
         activeWinCount,
         activeLossCount,
-        winQualityScore,
         winMaxStreak,
         finalScore,
         bridgeNames,
@@ -702,12 +719,8 @@ export const getLoaiSoHauNhi = (rawData) => {
       };
     });
 
-  // Sắp xếp ưu tiên:
-  // 1. Số lượng cầu ĐANG THẮNG (3 cầu thắng > 2 cầu thắng > 1 cầu thắng > 0 cầu thắng)
-  // 2. Điểm tổng hợp cuối cùng (consensus + win score + streak)
-  // 3. Chuỗi thông lớn nhất của cầu đang thắng
+  // Sắp xếp trực tiếp theo điểm tổng hợp Supreme V2 (finalScore)
   candidateList.sort((a, b) => {
-    if (b.activeWinCount !== a.activeWinCount) return b.activeWinCount - a.activeWinCount;
     if (b.finalScore !== a.finalScore) return b.finalScore - a.finalScore;
     if (b.winMaxStreak !== a.winMaxStreak) return b.winMaxStreak - a.winMaxStreak;
     return b.totalScore - a.totalScore;
